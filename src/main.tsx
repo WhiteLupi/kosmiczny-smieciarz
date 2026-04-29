@@ -5,9 +5,11 @@ import './index.css';
 import { startPersistence } from './state/persistence';
 import { applyPalette } from './state/applyPalette';
 import { useStore } from './state/store';
+import { initAuth } from './auth/authActions';
 
 document.documentElement.dataset.palette = 'p1';
 startPersistence();
+initAuth();
 // After rehydrate, sync palette CSS vars to current planet
 applyPalette(useStore.getState().planet);
 

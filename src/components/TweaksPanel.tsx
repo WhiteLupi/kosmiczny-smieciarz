@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useStore } from '@/state/store';
 import { applyPalette } from '@/state/applyPalette';
 import { setSfxEnabled } from '@/audio/sfx';
+import { signOut } from '@/auth/authActions';
 import type { PlanetId, Pace, MoodId } from '@/types/game';
 
 export function TweaksPanel() {
@@ -99,8 +100,26 @@ export function TweaksPanel() {
             <button className="tglBtn" onClick={() => location.reload()}>RESET GRY</button>
             <button className="tglBtn" onClick={() => setMode('finale')}>SKIP DO FINAŁU</button>
           </div>
+          <AuthRow />
         </div>
       )}
     </>
+  );
+}
+
+function AuthRow() {
+  const user = useStore((s) => s.user);
+  const setShowAuthModal = useStore((s) => s.setShowAuthModal);
+  return (
+    <div className="tw-row" style={{ marginTop: 10, borderTop: '1px dotted var(--p-frame-dk)', paddingTop: 10 }}>
+      <span style={{ fontSize: 16, color: 'var(--p-ink-dim)' }}>
+        {user ? `▸ ${user.email ?? 'zalogowany'}` : '▸ niezalogowany'}
+      </span>
+      {user ? (
+        <button className="tglBtn" onClick={() => void signOut()}>WYLOGUJ</button>
+      ) : (
+        <button className="tglBtn" onClick={() => setShowAuthModal(true)}>ZALOGUJ</button>
+      )}
+    </div>
   );
 }

@@ -437,6 +437,119 @@
   cursor: pointer;
 }
 
+.auth-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0, 0, 0, .7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-modal {
+  width: 480px;
+  padding: 0;
+  font-family: 'VT323', monospace;
+}
+.auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 3px solid #0c1a0c;
+  background: #172617;
+}
+.auth-close {
+  background: transparent;
+  border: none;
+  color: var(--p-ink);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.auth-close:hover { color: var(--p-accent); }
+.auth-body { padding: 16px; }
+.auth-section { margin-bottom: 14px; }
+.auth-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.auth-input {
+  flex: 1;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  background: #0c1a0c;
+  color: #e3ebd8;
+  border: 3px solid var(--p-frame-dk);
+  padding: 6px 10px;
+  outline: none;
+}
+.auth-input:focus { border-color: var(--p-accent); }
+.auth-hint {
+  font-size: 18px;
+  color: var(--p-ink-dim);
+  margin-top: 8px;
+  line-height: 1.2;
+}
+.auth-divider {
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--p-ink-dim);
+  margin: 14px 0;
+  letter-spacing: 2px;
+}
+.auth-oauth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+  padding: 12px 16px;
+}
+.auth-oauth span {
+  display: inline-block;
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--p-accent);
+}
+.auth-warn {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: #d8c34c;
+  background: #2a2410;
+  border-left: 4px solid #d8c34c;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.auth-error {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--p-err);
+  background: #2a1010;
+  border-left: 4px solid var(--p-err);
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.auth-success {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--p-ok);
+  text-align: center;
+  padding: 20px 10px;
+  letter-spacing: 2px;
+}
+.auth-footer {
+  margin-top: 16px;
+  text-align: center;
+  border-top: 1px dotted var(--p-frame-dk);
+  padding-top: 14px;
+}
+
 .toast {
   position: absolute;
   top: 90px;
