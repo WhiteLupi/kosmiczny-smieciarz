@@ -7,6 +7,7 @@ import { createDialogSlice, type DialogSlice } from './slices/dialogSlice';
 import { createPuzzleSlice, type PuzzleSlice } from './slices/puzzleSlice';
 import { createTweaksSlice, type TweaksSlice } from './slices/tweaksSlice';
 import { createAuthSlice, type AuthSlice } from './slices/authSlice';
+import { createMetaSlice, type MetaSlice } from './slices/metaSlice';
 
 export type GameStore = ModeSlice &
   InventorySlice &
@@ -15,7 +16,8 @@ export type GameStore = ModeSlice &
   DialogSlice &
   PuzzleSlice &
   TweaksSlice &
-  AuthSlice;
+  AuthSlice &
+  MetaSlice;
 
 export const useStore = create<GameStore>()((...a) => ({
   ...createModeSlice(...a),
@@ -26,4 +28,5 @@ export const useStore = create<GameStore>()((...a) => ({
   ...createPuzzleSlice(...a),
   ...createTweaksSlice(...a),
   ...createAuthSlice(...a),
+  ...createMetaSlice(...a),
 }));

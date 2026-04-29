@@ -169,3 +169,42 @@
   border: 3px solid #8a8262;
   max-width: 420px;
 }
+
+.finale-leaderboard {
+  width: 720px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: #13201a;
+}
+.finale-lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: #cfe6c8;
+}
+.finale-lb-table th {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--p-accent);
+  letter-spacing: 1px;
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 2px solid var(--p-frame-dk);
+}
+.finale-lb-table td {
+  padding: 3px 8px;
+  border-bottom: 1px dotted var(--p-frame-dk);
+}
+.finale-lb-table tr:nth-child(1) td { color: var(--p-accent); }
+.finale-helena-stats {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--p-ink-dim);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dotted var(--p-frame-dk);
+  text-align: center;
+}

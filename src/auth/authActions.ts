@@ -40,12 +40,25 @@ export async function signOut(): Promise<void> {
  */
 export function initAuth(): void {
   if (!supabase) return;
-  // Initial session
+  let prevUserId: string | null = null;
+
   void supabase.auth.getSession().then(({ data }) => {
     useStore.getState().setSession(data.session);
+    const uid = data.session?.user.id ?? null;
+    if (uid) {
+      prevUserId = uid;
+      void import('@/state/cloudSync').then((m) => m.syncOnLogin(uid));
+    }
   });
-  // Subscribe to auth state changes
+
   supabase.auth.onAuthStateChange((_event, session) => {
     useStore.getState().setSession(session);
+    const newUid = session?.user.id ?? null;
+    if (newUid && newUid !== prevUserId) {
+      prevUserId = newUid;
+      void import('@/state/cloudSync').then((m) => m.syncOnLogin(newUid));
+    } else if (!newUid) {
+      prevUserId = null;
+    }
   });
 }

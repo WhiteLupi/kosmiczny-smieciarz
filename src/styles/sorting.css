@@ -550,6 +550,20 @@
   padding-top: 14px;
 }
 
+.presence-indicator {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 580;
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--p-ink-dim);
+  background: rgba(19, 32, 26, 0.85);
+  border: 2px solid var(--p-frame-dk);
+  padding: 6px 12px;
+  pointer-events: none;
+}
+
 .toast {
   position: absolute;
   top: 90px;

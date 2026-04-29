@@ -36,6 +36,7 @@ export interface PersistedSnapshot {
   sorting?: PersistedSorting | undefined;
   puzzle?: Record<string, PersistedPuzzle> | undefined;
   tweaks?: GameStore['tweaks'] | undefined;
+  meta?: { gameStartedAt: number | null; anonNick: string } | undefined;
 }
 
 export function loadSnapshot(): PersistedSnapshot | null {
@@ -113,6 +114,7 @@ export function serialize(s: GameStore): PersistedSnapshot {
       ]),
     ),
     tweaks: s.tweaks,
+    meta: { gameStartedAt: s.gameStartedAt, anonNick: s.anonNick },
   };
 }
 
@@ -125,6 +127,10 @@ export function rehydrate(snap: PersistedSnapshot): void {
     flags: snap.flags,
   };
   if (snap.tweaks) partial.tweaks = snap.tweaks;
+  if (snap.meta) {
+    partial.gameStartedAt = snap.meta.gameStartedAt;
+    if (snap.meta.anonNick) partial.anonNick = snap.meta.anonNick;
+  }
   if (snap.puzzle) {
     partial.puzzleProgress = Object.fromEntries(
       Object.entries(snap.puzzle).map(([k, v]) => [
@@ -166,5 +172,12 @@ const debouncedSave = debounce((s: GameStore) => saveSnapshot(serialize(s)), 500
 export function startPersistence(): void {
   const snap = loadSnapshot();
   if (snap) rehydrate(snap);
-  useStore.subscribe((s) => debouncedSave(s));
+  useStore.subscribe((s) => {
+    // Always save locally
+    debouncedSave(s);
+    // If logged in, also push to cloud (debounced separately, dynamic import to avoid circular dep)
+    if (s.user) {
+      void import('./cloudSync').then((m) => m.maybeScheduleCloudPush());
+    }
+  });
 }

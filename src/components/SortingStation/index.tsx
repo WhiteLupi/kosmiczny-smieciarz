@@ -59,6 +59,8 @@ export function SortingStation() {
       if (!cur) return;
       const item = cur.pool[cur.idx];
       if (!item) return;
+      // start game timer on first sort
+      if (!s.gameStartedAt) s.setGameStartedAt(Date.now());
 
       const { expected } = evaluateItem(item, cur.rules, cur.unlocked);
       const correct = expected === zone;

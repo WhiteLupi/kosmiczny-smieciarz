@@ -7,6 +7,7 @@ import { TweaksPanel } from './components/TweaksPanel';
 import { SettingsHotkeys } from './components/SettingsHotkeys';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthModal } from './components/AuthModal';
+import { PresenceIndicator } from './components/PresenceIndicator';
 import { useStore } from './state/store';
 import { applyDialogEffect } from './game/dialogEffects';
 
@@ -23,6 +24,7 @@ export default function App() {
         <PlanetTabs />
         <TweaksPanel />
         <AuthModal />
+        <PresenceIndicator />
         <SettingsHotkeys />
       </ErrorBoundary>
     </Stage>
