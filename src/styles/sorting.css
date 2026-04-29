@@ -247,6 +247,54 @@
     linear-gradient(180deg, #4a5a7a 0 40%, #2a3a5a 40% 100%);
 }
 
+.puzzle-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 250;
+  background: var(--p-bg);
+}
+.puzzle-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, var(--p-bg-2) 0 30px, var(--p-bg) 30px 60px),
+    radial-gradient(ellipse at 50% 80%, rgba(216, 195, 76, .08) 0 30%, transparent 60%);
+}
+.puzzle-title {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: var(--p-accent);
+  letter-spacing: 4px;
+}
+.puzzle-back { position: absolute; bottom: 40px; left: 40px; }
+
+.hotspot {
+  position: absolute;
+  cursor: pointer;
+  border: 2px dashed transparent;
+  transition: border-color .2s, background .2s;
+  background: rgba(216, 195, 76, 0.04);
+}
+.hotspot:hover { border-color: var(--p-accent); background: rgba(216, 195, 76, 0.12); }
+.hotspot-label {
+  position: absolute;
+  bottom: -22px;
+  left: 0; right: 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--p-accent);
+  text-align: center;
+  opacity: 0;
+  transition: opacity .2s;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.hotspot:hover .hotspot-label { opacity: 1; }
+
 .dialog-overlay {
   position: absolute;
   inset: 0;

@@ -64,7 +64,9 @@ export function DialogScene({ onEffect }: Props) {
       setDialogNode(c.go);
     } else {
       closeDialog();
-      setOverlay('none');
+      // If a puzzle is active, return to puzzle overlay; otherwise no overlay.
+      const active = useStore.getState().activePuzzleId;
+      setOverlay(active ? 'puzzle' : 'none');
     }
   }
 

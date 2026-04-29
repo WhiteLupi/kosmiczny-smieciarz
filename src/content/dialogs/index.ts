@@ -1,10 +1,30 @@
 import type { DialogTree } from '@/types/dialog';
 import { helenaTestDialog } from './helenaTest';
 import { zenekDialog } from './zenek';
+import {
+  helenaQuestDialog,
+  strozDialog,
+  szwagierDialog,
+  okienko12Dialog,
+  archiwistaDialog,
+} from './puzzleF17B';
+import {
+  arbiterIntroDialog,
+  arbiterDrawerLockedDialog,
+  arbiterFinaleDialog,
+} from './arbiter';
 
 export const DIALOGS: Record<string, DialogTree> = {
   helena_test: helenaTestDialog,
   zenek: zenekDialog,
+  helena_quest: helenaQuestDialog,
+  stroz: strozDialog,
+  szwagier: szwagierDialog,
+  okienko12: okienko12Dialog,
+  archiwista: archiwistaDialog,
+  arbiter_intro: arbiterIntroDialog,
+  arbiter_drawer_locked: arbiterDrawerLockedDialog,
+  arbiter_finale: arbiterFinaleDialog,
 };
 
 export type DialogEffectId =
