@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<title>KOSMICZNY ŚMIECIARZ</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* BIUROKRACJA-7 — zielono-biurowa jarzeniówka */
+    --p-bg:        #1a2a1a;
+    --p-bg-2:      #223322;
+    --p-ink:       #b8d9b0;
+    --p-ink-dim:   #6c8a66;
+    --p-paper:     #e3dcc0;
+    --p-paper-dk:  #c6bf9f;
+    --p-stamp-b:   #2c4a8a;
+    --p-stamp-r:   #9a2a2a;
+    --p-stamp-k:   #1b1b1b;
+    --p-accent:    #d8c34c;   /* żółty formularzowy */
+    --p-ok:        #5bbd5b;
+    --p-err:       #d94d4d;
+    --p-frame:     #8a9f7a;
+    --p-frame-dk:  #324a2e;
+    --p-frame-hi:  #d9eac8;
+    --crt:         1;
+  }
+  html,body{margin:0;padding:0;background:#000;color:var(--p-ink);font-family:'VT323',monospace;overflow:hidden;height:100%;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  img,canvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+
+  /* Stage: 1280x800 base, letterboxed */
+  #stage-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;}
+  #stage{position:relative;width:1280px;height:800px;background:var(--p-bg);transform-origin:center center;}
+  .screen{position:absolute;inset:0;}
+  .hidden{display:none !important;}
+
+  /* CRT scanlines + vignette */
+  #stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(to bottom, rgba(0,0,0,.22) 0 2px, transparent 2px 4px),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%);
+    mix-blend-mode:multiply;opacity:var(--crt);z-index:9999;
+  }
+  #stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:9998;
+    box-shadow:inset 0 0 120px rgba(0,255,120,.05);
+  }
+
+  /* Typography */
+  .mono{font-family:'VT323',monospace;}
+  .pixel{font-family:'Press Start 2P',monospace;}
+  h1,h2,h3{margin:0;font-weight:400;}
+
+  /* Bevelled pixel frame (doom/dos chunky) */
+  .frame{
+    background:var(--p-bg-2);
+    border:4px solid var(--p-frame-dk);
+    box-shadow:
+      inset 2px 2px 0 var(--p-frame),
+      inset -2px -2px 0 #0c1a0c,
+      inset 6px 6px 0 rgba(255,255,255,.02);
+    padding:10px 12px;
+  }
+  .frame.inset{
+    border:4px solid #0c1a0c;
+    box-shadow:
+      inset 2px 2px 0 #0c1a0c,
+      inset -2px -2px 0 var(--p-frame);
+    background:#13201a;
+  }
+  .frame.paper{
+    background:var(--p-paper);
+    color:#2a2a22;
+    border:3px solid #8a8262;
+    box-shadow:
+      inset 2px 2px 0 #f2eedd,
+      inset -3px -3px 0 var(--p-paper-dk),
+      3px 3px 0 rgba(0,0,0,.35);
+  }
+
+  .title{font-family:'Press Start 2P',monospace;color:var(--p-accent);letter-spacing:1px;}
+  .vt{font-family:'VT323',monospace;font-size:22px;line-height:1.1;}
+  .vtL{font-family:'VT323',monospace;font-size:28px;line-height:1.1;}
+  .vtS{font-family:'VT323',monospace;font-size:18px;line-height:1.1;}
+  .lbl{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--p-ink-dim);}
+  .lblAcc{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--p-accent);}
+  .num{font-family:'VT323',monospace;font-size:32px;line-height:1;color:var(--p-frame-hi);}
+
+  /* Buttons */
+  .btn{
+    display:inline-block;font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;
+    background:#2d4a2d;color:#dfeedb;padding:10px 14px;cursor:pointer;user-select:none;
+    border:3px solid #0c1a0c;
+    box-shadow:inset 2px 2px 0 #6f8a68, inset -2px -2px 0 #132313, 3px 3px 0 rgba(0,0,0,.35);
+  }
+  .btn:hover{background:#3a5e3a;}
+  .btn:active{box-shadow:inset -2px -2px 0 #6f8a68, inset 2px 2px 0 #132313, 1px 1px 0 rgba(0,0,0,.35);transform:translate(2px,2px);}
+  .btn.primary{background:#7a6b1a;color:#fff5c0;}
+  .btn.primary:hover{background:#9a872a;}
+  .btn.ghost{background:transparent;color:var(--p-ink);}
+
+  /* ======================== TITLE / BOOT ======================== */
+  #boot{position:absolute;inset:0;background:#000;color:#c9c9c9;font-family:'VT323',monospace;font-size:22px;padding:60px 80px;}
+  #boot .row{white-space:pre;}
+  #boot .cur{display:inline-block;width:10px;background:#c9c9c9;animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  #title{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;background:#000;}
+  #title .logo{
+    font-family:'Press Start 2P',monospace;color:var(--p-accent);
+    font-size:56px;letter-spacing:6px;text-align:center;
+    text-shadow:4px 4px 0 #552c00, 8px 8px 0 #2a1600;
+  }
+  #title .sub{font-family:'VT323',monospace;font-size:28px;color:#9ae29a;}
+  #title .press{font-family:'Press Start 2P',monospace;font-size:14px;color:#e3d76a;animation:blink 1.2s steps(1) infinite;}
+  #title .cr{font-family:'VT323',monospace;font-size:20px;color:#7a7a7a;position:absolute;bottom:30px;}
+  #title .stars{position:absolute;inset:0;pointer-events:none;}
+  #title .stars i{position:absolute;width:2px;height:2px;background:#fff;opacity:.8;animation:twinkle 3s infinite;}
+  @keyframes twinkle{50%{opacity:.2;}}
+
+  /* ======================== SORTING STATION ======================== */
+  #sort{position:absolute;inset:0;display:grid;grid-template-rows:72px 1fr 210px;}
+  .topbar{display:grid;grid-template-columns:96px 1fr auto auto;gap:16px;align-items:center;padding:8px 14px;background:#172617;border-bottom:4px solid #0c1a0c;box-shadow:inset 0 -2px 0 var(--p-frame);}
+  .portrait{width:56px;height:56px;image-rendering:pixelated;background:#0a0a0a;border:3px solid #0c1a0c;box-shadow:inset 2px 2px 0 #6f8a68,inset -2px -2px 0 #132313;}
+  .stat{display:flex;flex-direction:column;gap:2px;}
+  .stat .k{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--p-ink-dim);letter-spacing:1px;}
+  .stat .v{font-family:'VT323',monospace;font-size:28px;color:var(--p-frame-hi);line-height:1;}
+
+  .midgrid{display:grid;grid-template-columns:1fr 380px;gap:14px;padding:14px;min-height:0;}
+  .workstation{position:relative;overflow:hidden;}
+  .belt{position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(90deg,#2b3a26 0 24px,#253320 24px 48px),
+      linear-gradient(180deg, transparent 0 30%, rgba(0,0,0,.25) 30% 70%, transparent 70%);
+    border:4px solid #0c1a0c;
+    box-shadow:inset 2px 2px 0 var(--p-frame),inset -2px -2px 0 #132313;
+  }
+  .belt::before,.belt::after{content:"";position:absolute;left:0;right:0;height:14px;background:repeating-linear-gradient(90deg,#111 0 12px,#2a2a2a 12px 24px);}
+  .belt::before{top:0;}
+  .belt::after{bottom:0;}
+
+  .beltLabel{position:absolute;top:20px;left:20px;z-index:3;}
+  .beltCounter{position:absolute;top:20px;right:20px;z-index:3;font-family:'VT323',monospace;font-size:22px;color:#9ae29a;background:#0c1a0c;padding:4px 10px;border:2px solid var(--p-frame-dk);}
+
+  /* The formularz (card to drag) */
+  .card{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:360px;height:440px;cursor:grab;user-select:none;touch-action:none;
+    transition:transform .15s;
+  }
+  .card.dragging{cursor:grabbing;z-index:20;transition:none;}
+  .card .paper{
+    width:100%;height:100%;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 22px, rgba(0,0,0,.05) 22px 23px),
+      var(--p-paper);
+    color:#2a2a22;
+    border:3px solid #8a8262;
+    box-shadow:
+      inset 2px 2px 0 #f2eedd,
+      inset -3px -3px 0 var(--p-paper-dk),
+      6px 6px 0 rgba(0,0,0,.4);
+    padding:16px 18px;position:relative;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .card .hdr{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px dashed #8a8262;padding-bottom:6px;}
+  .card .hdr .no{font-family:'Press Start 2P',monospace;font-size:11px;color:#2a2a22;}
+  .card .hdr .dz{font-family:'VT323',monospace;font-size:20px;color:#4a4a3a;}
+  .card h3{font-family:'Press Start 2P',monospace;font-size:12px;letter-spacing:1px;margin-top:4px;}
+  .card .row{font-family:'VT323',monospace;font-size:20px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted #8a8262;padding:2px 0;min-height:24px;white-space:nowrap;overflow:hidden;}
+  .card .row b{max-width:55%;overflow:hidden;text-overflow:ellipsis;text-align:right;}
+  .card .row b{font-weight:normal;color:#555;}
+  .card .footer{margin-top:auto;font-family:'VT323',monospace;font-size:18px;color:#6a6a5a;display:flex;justify-content:space-between;}
+
+  /* Stamp */
+  .stamp{position:absolute;right:16px;bottom:50px;transform:rotate(-12deg);
+    padding:6px 12px;border:3px solid currentColor;border-radius:4px;
+    font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:2px;
+    opacity:1;background:rgba(255,255,255,.2);}
+  .stamp.niebieska{color:var(--p-stamp-b);}
+  .stamp.czerwona{color:var(--p-stamp-r);}
+  .stamp.czarna{color:var(--p-stamp-k);}
+  .stamp.suchy{opacity:.45;border-style:dashed;}
+  .stamp.mokry::after{content:"";position:absolute;inset:-4px;border:3px dotted currentColor;opacity:.4;border-radius:6px;}
+
+  .photo{position:absolute;right:14px;top:46px;width:58px;height:70px;background:#6a7a5a;border:2px solid #3a3a2a;box-shadow:2px 2px 0 rgba(0,0,0,.3);
+    background-image:
+      radial-gradient(circle at 50% 36%, #d2b790 0 14px, transparent 14px),
+      radial-gradient(ellipse at 50% 88%, #8a6a4a 0 32px, transparent 32px),
+      linear-gradient(180deg,#4a5a7a 0 40%,#2a3a5a 40% 100%);
+  }
+
+  /* Rules panel */
+  .rules{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+  .rules h3{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--p-accent);letter-spacing:2px;}
+  .rulesList{display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:4px;}
+  .rule{font-family:'VT323',monospace;font-size:20px;line-height:1.2;color:#cfe6c8;padding:6px 8px;background:#13201a;border-left:4px solid var(--p-accent);}
+  .rule.new{animation:newRule 1.2s;background:#2e3a12;}
+  @keyframes newRule{
+    0%{background:#d8c34c;color:#111;transform:translateX(-10px);}
+    100%{background:#2e3a12;color:#cfe6c8;transform:none;}
+  }
+  .rule .rn{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--p-accent);margin-right:6px;}
+
+  .npcQueue{margin-top:6px;padding:8px;border:3px dashed #3a5a32;}
+  .npcQueue .lbl{color:var(--p-ok);}
+
+  /* Drop zones */
+  .zones{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;padding:12px 14px 14px;background:#10190f;border-top:4px solid #0c1a0c;}
+  .zone{
+    position:relative;min-height:180px;padding:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    font-family:'Press Start 2P',monospace;font-size:14px;letter-spacing:2px;text-align:center;
+    border:4px solid #0c1a0c;
+    background:#1a2a1a;
+    color:#cfe6c8;
+    box-shadow:inset 3px 3px 0 var(--p-frame),inset -3px -3px 0 #0c1a0c;
+    cursor:pointer;transition:transform .1s,background .15s;
+  }
+  .zone .sub{font-family:'VT323',monospace;font-size:20px;letter-spacing:0;color:var(--p-ink-dim);text-transform:none;}
+  .zone.akcept{background:#1e3a1e;border-color:#0c2a0c;} .zone.akcept .icn{color:#78e078;}
+  .zone.odrzut{background:#3a1e1e;border-color:#2a0c0c;} .zone.odrzut .icn{color:#e07878;}
+  .zone.przekaz{background:#1e2a3a;border-color:#0c1a2a;} .zone.przekaz .icn{color:#78a8e0;}
+  .zone.hover{transform:translateY(-4px);filter:brightness(1.3);}
+  .zone .icn{font-size:28px;}
+  .zone .hint{position:absolute;top:6px;right:8px;font-family:'VT323',monospace;font-size:16px;color:var(--p-ink-dim);}
+
+  .sideCol{display:flex;flex-direction:column;gap:10px;}
+
+  /* Flash feedback */
+  .flash{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:30;}
+  .flash.ok{background:rgba(80,220,80,.22);}
+  .flash.err{background:rgba(220,60,60,.28);}
+  .flash.show{animation:flashA .4s;}
+  @keyframes flashA{0%{opacity:1}100%{opacity:0}}
+
+  .toast{position:absolute;top:90px;left:50%;transform:translateX(-50%);z-index:40;padding:10px 18px;font-family:'Press Start 2P',monospace;font-size:12px;letter-spacing:2px;background:#d8c34c;color:#1b1b1b;border:3px solid #8a6a00;box-shadow:4px 4px 0 rgba(0,0,0,.4);animation:toast 2.6s ease forwards;}
+  @keyframes toast{0%{opacity:0;transform:translate(-50%,-20px)}15%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
+
+  /* ======================== DIALOG OVERLAY ======================== */
+  #dialog{position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;}
+  .dialogBox{width:1160px;margin-bottom:30px;display:grid;grid-template-columns:156px 1fr;gap:16px;padding:14px;background:#13201a;border:4px solid #0c1a0c;box-shadow:inset 2px 2px 0 var(--p-frame),inset -2px -2px 0 #132313, 6px 6px 0 rgba(0,0,0,.5);}
+  .dialogBox .npcPortrait{width:140px;height:140px;border:3px solid #0c1a0c;background:#0a0a0a;box-shadow:inset 2px 2px 0 #6f8a68;}
+  .dialogBox .who{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--p-accent);letter-spacing:2px;margin-bottom:8px;}
+  .dialogBox .txt{font-family:'VT323',monospace;font-size:26px;line-height:1.2;color:#e3ebd8;min-height:90px;}
+  .dialogBox .choices{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .dialogBox .choice{font-family:'VT323',monospace;font-size:22px;color:#cfe6c8;padding:6px 10px;background:#1a2a1a;border-left:4px solid var(--p-accent);cursor:pointer;}
+  .dialogBox .choice:hover{background:#2a3e26;color:#fff5c0;}
+  .dialogBox .choice .k{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--p-accent);margin-right:6px;}
+
+  /* Helena overlay flavor when she is tested */
+  #dialog.heroine .dialogBox{border-color:#8a6a00;box-shadow:inset 2px 2px 0 #e8c74a,inset -2px -2px 0 #3a2a00,0 0 0 2px #000,8px 8px 0 rgba(0,0,0,.5);}
+
+  /* ======================== DAY END ======================== */
+  #dayend{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1a0c;z-index:150;}
+  .endCard{width:560px;padding:22px 26px;}
+  .endCard h2{font-family:'Press Start 2P',monospace;font-size:18px;color:var(--p-accent);letter-spacing:2px;text-align:center;margin-bottom:18px;}
+  .endRow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted var(--p-frame-dk);}
+  .endRow .k{font-family:'VT323',monospace;font-size:26px;color:#cfe6c8;}
+  .endRow .v{font-family:'VT323',monospace;font-size:26px;color:var(--p-frame-hi);}
+  .endRow.total .k,.endRow.total .v{color:var(--p-accent);font-size:30px;}
+
+  /* ======================== TRANSIT ======================== */
+  #transit{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:140;}
+  #transit .ship{width:64px;height:32px;background:#c9c9c9;position:relative;animation:drift 3s ease-in-out infinite;
+    clip-path:polygon(0 40%,70% 40%,100% 50%,70% 60%,0 60%);}
+  @keyframes drift{50%{transform:translateY(-8px);}}
+  #transit .caption{position:absolute;bottom:90px;width:100%;text-align:center;font-family:'VT323',monospace;font-size:28px;color:#9ae29a;}
+  #transit .stars2{position:absolute;inset:0;}
+  #transit .stars2 i{position:absolute;width:2px;height:2px;background:#fff;animation:slide 2.5s linear infinite;}
+  @keyframes slide{0%{transform:translateX(0);opacity:1}100%{transform:translateX(-200px);opacity:0}}
+
+  /* ======================== FINALE ======================== */
+  #finale{position:absolute;inset:0;background:#060606;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:160;gap:20px;}
+  #finale .konie{font-family:'Press Start 2P',monospace;font-size:56px;color:#d94d4d;letter-spacing:10px;text-shadow:4px 4px 0 #3a0a0a;}
+  #finale .num847{font-family:'Press Start 2P',monospace;font-size:92px;color:var(--p-accent);background:#1b1b1b;padding:20px 40px;border:4px solid var(--p-accent);box-shadow:8px 8px 0 rgba(0,0,0,.6);}
+  #finale .bot{font-family:'VT323',monospace;font-size:26px;color:#8a8a8a;max-width:780px;text-align:center;line-height:1.25;}
+  #finale .helena{position:absolute;bottom:-200px;display:flex;align-items:center;gap:14px;transition:bottom .8s;}
+  #finale .helena.up{bottom:60px;}
+  #finale .helena .bubble{font-family:'VT323',monospace;font-size:22px;background:var(--p-paper);color:#1b1b1b;padding:10px 14px;border:3px solid #8a8262;max-width:420px;}
+
+  /* ======================== TWEAKS PANEL ======================== */
+  #tweaksToggle{position:absolute;right:16px;top:16px;z-index:601;}
+  #tweaks{position:absolute;right:16px;top:64px;width:300px;z-index:600;padding:12px;background:#13201a;border:4px solid #0c1a0c;box-shadow:inset 2px 2px 0 var(--p-frame),inset -2px -2px 0 #132313, 6px 6px 0 rgba(0,0,0,.5);}
+  #tweaks h3{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--p-accent);letter-spacing:2px;margin-bottom:10px;}
+  #tweaks .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0;font-family:'VT323',monospace;font-size:18px;color:#cfe6c8;}
+  #tweaks .row span{flex:1;min-width:0;}
+  #tweaks input[type=range]{width:120px;accent-color:var(--p-accent);flex-shrink:0;}
+  #tweaks select{background:#0c1a0c;color:#cfe6c8;border:2px solid var(--p-frame-dk);font-family:'VT323',monospace;font-size:18px;padding:2px 4px;}
+  #tweaks .tglBtn{font-family:'Press Start 2P',monospace;font-size:9px;padding:4px 6px;background:#2d4a2d;color:#dfeedb;border:2px solid #0c1a0c;cursor:pointer;}
+
+  /* Inventory chip */
+  .invRow{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{font-family:'VT323',monospace;font-size:18px;background:#13201a;border:2px solid var(--p-frame-dk);padding:2px 8px;color:#cfe6c8;}
+  .chip b{color:var(--p-accent);font-weight:normal;margin-right:4px;}
+
+  /* Progress tabs (jump between planets) */
+  #tabs{position:absolute;left:16px;bottom:10px;z-index:600;display:flex;gap:6px;}
+  #tabs .tab{font-family:'Press Start 2P',monospace;font-size:9px;padding:6px 9px;background:#13201a;color:var(--p-ink-dim);border:3px solid #0c1a0c;box-shadow:inset 2px 2px 0 var(--p-frame-dk),inset -2px -2px 0 #0c1a0c;cursor:pointer;letter-spacing:1px;}
+  #tabs .tab.active{color:var(--p-accent);background:#2e3a12;}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:#0c1a0c;}
+  ::-webkit-scrollbar-thumb{background:var(--p-frame-dk);border:2px solid #0c1a0c;}
+</style>
+</head>
+<body>
+<div id="stage-wrap">
+  <div id="stage" data-screen-label="Kosmiczny Smieciarz">
+
+    <!-- Tweaks toggle -->
+    <button id="tweaksToggle" class="btn ghost hidden" style="z-index:601;">⚙ TWEAKS</button>
+
+    <!-- Progress tabs -->
+    <div id="tabs" class="hidden">
+      <div class="tab active" data-jump="p1">P1 · BIUROKRACJA-7</div>
+      <div class="tab" data-jump="p2">P2 · HYPER-MART</div>
+      <div class="tab" data-jump="p3">P3 · FLARGLEBLOOP-IV</div>
+      <div class="tab" data-jump="p4">P4 · STACJA KOŃCOWA</div>
+      <div class="tab" data-jump="finale">FINAŁ</div>
+    </div>
+
+    <!-- BOOT -->
+    <div id="boot" class="screen" data-screen-label="00 Boot">
+<div class="row">KOSMICZNY_SMIECIARZ.EXE v1.02</div>
+<div class="row">(c) 1993 BRONOSOFT INTERACTIVE</div>
+<div class="row">─────────────────────────────</div>
+<div class="row" id="bootLines"></div>
+<div class="row" id="bootPrompt" style="display:none;margin-top:8px;">WARNING: Insufficient memory.  Continue? [T/N] <span class="cur">&nbsp;</span></div>
+    </div>
+
+    <!-- TITLE -->
+    <div id="title" class="screen hidden" data-screen-label="01 Title">
+      <div class="stars"></div>
+      <div class="logo">KOSMICZNY<br>ŚMIECIARZ</div>
+      <div class="sub">— parodia hero complexu w grach —</div>
+      <div class="press">▸ PRESS ANY KEY TO START ZBIERANIE ◂</div>
+      <div class="cr">(c) 1993 BRONOSOFT · VGA · 640×400 · SOUND BLASTER DETECTED</div>
+    </div>
+
+    <!-- SORTING STATION (P1) -->
+    <div id="sort" class="screen hidden" data-screen-label="02 Sortownia">
+      <!-- Top bar -->
+      <div class="topbar">
+        <canvas id="portrait" class="portrait" width="16" height="16" style="width:56px;height:56px;"></canvas>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div class="lblAcc" id="planetName">BIUROKRACJA-7 · STACJA Q-4</div>
+          <div class="vtS" id="planetSub">sortownia odpadów pozaziemskich · zmiana II</div>
+        </div>
+        <div class="stat"><div class="k">Kontyngent</div><div class="v"><span id="stCur">0</span>/<span id="stMax">15</span></div></div>
+        <div class="stat"><div class="k">Kredyty</div><div class="v"><span id="stCred">0</span> ₢</div></div>
+      </div>
+
+      <!-- Main grid -->
+      <div class="midgrid">
+        <div class="workstation frame inset">
+          <div class="belt"></div>
+          <div class="beltLabel lblAcc">▸ TAŚMA WEJŚCIOWA</div>
+          <div class="beltCounter" id="beltCtr">PRZEDMIOT 1/15</div>
+          <div id="cardSlot"></div>
+          <div class="flash ok" id="flashOk"></div>
+          <div class="flash err" id="flashErr"></div>
+        </div>
+
+        <div class="sideCol">
+          <div class="rules frame">
+            <h3>▸ REGULAMIN SORTOWANIA</h3>
+            <div class="rulesList" id="rulesList"></div>
+          </div>
+          <div class="frame" style="padding:10px 12px;">
+            <div class="lblAcc" style="margin-bottom:6px;">▸ INVENTORY</div>
+            <div class="invRow" id="invRow">
+              <span class="chip"><b>0</b>butelki KBK-3</span>
+              <span class="chip"><b>0</b>F-17/B</span>
+            </div>
+          </div>
+          <div class="frame" style="padding:10px 12px;">
+            <div class="lblAcc" style="margin-bottom:6px;">▸ AKTYWNY QUEST</div>
+            <div class="vtS" id="questTxt">Pani Helena: „Przynieś 5 formularzy F-17/B. Nie ma ich w kosmosie.”</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zones -->
+      <div class="zones">
+        <div class="zone akcept" data-zone="akcept">
+          <div class="icn">✓ AKCEPT</div>
+          <div class="sub">pieczątka OK · numer zgodny</div>
+          <div class="hint">[1]</div>
+        </div>
+        <div class="zone odrzut" data-zone="odrzut">
+          <div class="icn">✗ ODRZUT</div>
+          <div class="sub">brak stempla · zły numer</div>
+          <div class="hint">[2]</div>
+        </div>
+        <div class="zone przekaz" data-zone="przekaz">
+          <div class="icn">↑ PRZEKAŻ WYŻEJ</div>
+          <div class="sub">nie nasza kompetencja</div>
+          <div class="hint">[3]</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn primary" id="btnSkip">DALEJ ▸</button>
+          <button class="btn ghost" id="btnHint">? PODPOWIEDŹ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIALOG OVERLAY -->
+    <div id="dialog" class="screen hidden">
+      <div class="dialogBox">
+        <canvas class="npcPortrait" id="npcPortrait" width="16" height="16"></canvas>
+        <div>
+          <div class="who" id="dWho">PANI HELENA Z OKIENKA</div>
+          <div class="txt" id="dTxt"></div>
+          <div class="choices" id="dChoices"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY END -->
+    <div id="dayend" class="screen hidden" data-screen-label="03 Wyplata">
+      <div class="endCard frame">
+        <h2>▸ KONIEC DNIA ROBOCZEGO ◂</h2>
+        <div class="endRow"><span class="k">Poprawne sortowania</span><span class="v" id="eCor">0</span></div>
+        <div class="endRow"><span class="k">Błędy</span><span class="v" id="eErr">0</span></div>
+        <div class="endRow"><span class="k">Wypłata (2 ₢ / szt.)</span><span class="v" id="ePay">0 ₢</span></div>
+        <div class="endRow"><span class="k">Premia za quest Heleny</span><span class="v" id="eQuest">0 ₢</span></div>
+        <div class="endRow total"><span class="k">RAZEM</span><span class="v" id="eTot">0 ₢</span></div>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="btn primary" id="btnFly">▸ LECĘ NA HYPER-MART ◂</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSIT -->
+    <div id="transit" class="screen hidden" data-screen-label="04 Transit">
+      <div class="stars2" id="stars2"></div>
+      <div class="ship"></div>
+      <div class="caption" id="transitCap">Lecę na HYPER-MART GALAKTYCZNY...</div>
+    </div>
+
+    <!-- FINALE -->
+    <div id="finale" class="screen hidden" data-screen-label="05 Finale">
+      <div class="konie">KONIEC.</div>
+      <div class="num847">00847</div>
+      <div class="bot">
+        Gratulacje.<br>
+        Nie jesteś wybrańcem. Jesteś śmieciarzem.<br><br>
+        <span style="color:#5a5a5a;">(serio. to koniec. nie czekaj na post-credits — to nie jest gra Marvela.)</span>
+      </div>
+      <div class="helena" id="helenaClose">
+        <canvas width="16" height="16" id="helenaFinalPortrait" style="width:64px;height:64px;image-rendering:pixelated;border:3px solid #0c1a0c;background:#0a0a0a;"></canvas>
+        <div class="bubble">Pan jeszcze tu? Ja już kończę dniówkę. Niech pan zamknie. <b style="color:#8a2a2a;">Numerek pan ma?</b></div>
+      </div>
+    </div>
+
+    <!-- TWEAKS -->
+    <div id="tweaks" class="hidden" style="display:none;">
+      <h3>▸ TWEAKS / USTAWIENIA</h3>
+      <div class="row"><span>CRT</span><input id="tkCrt" type="range" min="0" max="1" step="0.05" value="1"></div>
+      <div class="row"><span>Paleta</span>
+        <select id="tkPalette">
+          <option value="p1">P1 · Biurokracja (zielona)</option>
+          <option value="p2">P2 · Hyper-Mart (biała)</option>
+          <option value="p3">P3 · Flarglebloop (fioletowa)</option>
+          <option value="p4">P4 · Stacja (szara)</option>
+        </select>
+      </div>
+      <div class="row"><span>Tempo reguł</span>
+        <select id="tkPace">
+          <option value="fast">Szybkie (2/3/5/7)</option>
+          <option value="normal" selected>Normalne (3/6/9/12)</option>
+          <option value="slow">Wolne (5/8/11/14)</option>
+        </select>
+      </div>
+      <div class="row"><span>Mood</span>
+        <select id="tkMood">
+          <option value="auto" selected>auto</option>
+          <option value="normal">normal</option>
+          <option value="tired">tired</option>
+          <option value="greedy">greedy</option>
+          <option value="surprised">surprised</option>
+          <option value="panicked">panicked</option>
+        </select>
+      </div>
+      <div class="row"><span>SFX</span><button class="tglBtn" id="tkSfx">ON</button></div>
+      <div class="row"><span>Tekst</span><input id="tkTxt" type="range" min="10" max="80" step="5" value="30"></div>
+      <div class="row" style="margin-top:10px;">
+        <button class="tglBtn" id="tkReset">RESET GRY</button>
+        <button class="tglBtn" id="tkSkip">SKIP DO FINAŁU</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =================================================================== */
+/* Editable tweaks                                                      */
+/* =================================================================== */
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "crtIntensity": 0.2,
+  "palette": "p1",
+  "paceMode": "normal",
+  "moodOverride": "auto",
+  "sfxOn": true,
+  "textSpeed": 35
+}/*EDITMODE-END*/;
+
+/* =================================================================== */
+/* Scaling                                                              */
+/* =================================================================== */
+function rescale(){
+  const s = document.getElementById('stage');
+  const k = Math.min(window.innerWidth/1280, window.innerHeight/800);
+  s.style.transform = 'scale('+k+')';
+}
+window.addEventListener('resize', rescale);
+rescale();
+
+/* =================================================================== */
+/* Pixel portrait renderer (16x16 per face)                              */
+/* =================================================================== */
+const PALETTE = {
+  '.':null,
+  'K':'#121212','W':'#efe8d4','S':'#d8c59a','H':'#6a4a2a','h':'#4a2e18',
+  'B':'#2c4a8a','R':'#9a2a2a','G':'#5bbd5b','Y':'#d8c34c','L':'#c28866',
+  'P':'#d9a8b3','T':'#7a6b4a','D':'#3a4a3a','m':'#2a2a2a','g':'#8a8a8a',
+  'U':'#5a3a7a','C':'#5ad0d8','O':'#e08a3a','F':'#ffc1d2','N':'#1a1a1a'
+};
+
+// 16x16 face grids (. = transparent)
+const FACES = {
+  // Player — 5 moods
+  pl_normal:[
+    "................",
+    ".....KKKKKKK....",
+    "....KSSSSSSSK...",
+    "...KSWWSSWWSSK..",
+    "...KSWKSSWKSSK..",
+    "...KSSSSHSSSSK..",
+    "...KSSSHHHSSSK..",
+    "...KSSShhhSSSK..",
+    "...KKSShhhSSKK..",
+    "....KSSSSSSSK...",
+    "....KDDDDDDDDK..",
+    "...KDTTTTTTTTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTTTTTTTTDK.",
+    "....KKKKKKKKKK.."
+  ],
+  pl_tired:[
+    "................",
+    ".....KKKKKKK....",
+    "....KSSSSSSSK...",
+    "...KSSSSSSSSSK..",
+    "...KSS--S--SSK..",
+    "...KSSSSHSSSSK..",
+    "...KSSSHHHSSSK..",
+    "...KSSSh-hSSSK..",
+    "...KKSSS-SSSKK..",
+    "....KSSSSSSSK...",
+    "....KDDDDDDDDK..",
+    "...KDTTTTTTTTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTTTTTTTTDK.",
+    "....KKKKKKKKKK.."
+  ],
+  pl_greedy:[
+    "................",
+    ".....KKKKKKK....",
+    "....KSSSSSSSK...",
+    "...KSWYSSWYSSK..",
+    "...KSYKSSYKSSK..",
+    "...KSSSSHSSSSK..",
+    "...KSSYHHYSSSK..",
+    "...KSSYhhhYSSK..",
+    "...KKSSYhhYSKK..",
+    "....KSSYYYYSK...",
+    "....KDDYYYYDDK..",
+    "...KDTTTYTTTTDK.",
+    "...KDTWYWYWWTDK.",
+    "...KDTWWYYWWTDK.",
+    "...KDTTTTTTTTDK.",
+    "....KKKKKKKKKK.."
+  ],
+  pl_surprised:[
+    "................",
+    ".....KKKKKKK....",
+    "....KSSSSSSSK...",
+    "...KSWWSSWWSSK..",
+    "...KSWNSSWNSSK..",
+    "...KSSSSHSSSSK..",
+    "...KSSSHHHSSSK..",
+    "...KSSKoooKSSK..",
+    "...KKSKoooKSKK..",
+    "....KSKoooKSK...",
+    "....KDDDDDDDDK..",
+    "...KDTTTTTTTTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTTTTTTTTDK.",
+    "....KKKKKKKKKK.."
+  ],
+  pl_panicked:[
+    "................",
+    "....KKKKKKKKK...",
+    "...KSSSSSSSSSK..",
+    "..KSWWSSSWWSSSK.",
+    "..KSWNSSSWNSSSK.",
+    "..KSSSSSHSSSSSK.",
+    "..KSSSSHHHSSSSK.",
+    "..KSSSWSSSWSSSK.",
+    "..KSSSWKKKWSSSK.",
+    "..KKSSSKKKSSSKK.",
+    "....KDDDDDDDDK..",
+    "...KDTTTTTTTTDK.",
+    "...KDTYWWWWYTDK.",
+    "...KDTWWWWWWTDK.",
+    "...KDTTTTTTTTDK.",
+    "....KKKKKKKKKK.."
+  ],
+  // Pani Helena — okulary, kok, kardigan zielony
+  helena:[
+    "................",
+    "....KKKKKKKKK...",
+    "...KmmmmmmmmmK..",
+    "..KmSSSSSSSSSmK.",
+    "..KmSSSKKKSSSmK.",
+    "..KmSKWKKKWKSmK.",
+    "..KmSKWRKKWRKSmK"[0]=='.'?"..KmSKWRKKRWKSmK.":"..KmSKWRKKRWKSmK.",
+    "..KmSSSSRSSSSSmK",
+    "..KmSSKoooKSSSmK",
+    "..KmmKKKKKKKmmmK",
+    "..KDDDDDDDDDDDK.",
+    ".KDTYYDDDDDDYYDK",
+    ".KDTYWWDDDDWWYDK",
+    ".KDTYYDDDDDDYYDK",
+    ".KDTTTTTTTTTTTDK",
+    "..KKKKKKKKKKKKK."
+  ],
+  // Officer 4782-B — korpo uśmiech
+  officer:[
+    "................",
+    "....KKKKKKKKK...",
+    "...KSSSSSSSSSK..",
+    "...KSWWSSWWSSSK.",
+    "...KSWNSSWNSSSK.",
+    "...KSSSSHSSSSSK.",
+    "...KSSSSSSSSSSK.",
+    "...KSKKKKKKKKSK.",
+    "...KSKWWWWWWKSK.",
+    "...KKKKKKKKKKKK.",
+    "...KBBBBBBBBBBK.",
+    "..KBBWWYYYYWWBBK",
+    "..KBBWWBBBBWWBBK",
+    "..KBBBBBBBBBBBBK",
+    "..KBBBBBBBBBBBBK",
+    "...KKKKKKKKKKKK."
+  ],
+  // Blorgonauta Xyzzy — 3 oczy, macka
+  blorg:[
+    "................",
+    "....UUUUUUUU....",
+    "...UUCCCCCCUU...",
+    "..UUCCCCCCCCUU..",
+    "..UCCWKWKWCCUU..",
+    "..UCCNKNKNCCUU..",
+    "..UUCCCKCCCCUU..",
+    "...UCCHHHHCCU...",
+    "...UCCCCCCCU....",
+    "....UUUUUUU.....",
+    ".....UCU........",
+    "....UCCCU.......",
+    "...UCCCCCU......",
+    "..UCCCCCCCU.....",
+    "..UCCCCCCCU.....",
+    "...UUUUUUUU....."
+  ],
+  // Arbiter Śmieci — płaszcz, pompa, hełm
+  arbiter:[
+    "................",
+    "....KKKKKKKKK...",
+    "...KNNNNNNNNNK..",
+    "..KNYNNNNNYNNK..",
+    "..KNYNWKWKWNYNK.",
+    "..KNNNNKKKNNNNK.",
+    "..KNSSNHNHNSSNK.",
+    "..KNSSNNSNNSSNK.",
+    "..KNNNNNSNNNNNK.",
+    "..KmmmmmmmmmmmK.",
+    ".KmYYmmmmmmmYYmK",
+    ".KmYmmmmmmmmmYmK",
+    ".KmYmmmYYmmmmYmK",
+    ".KmmmmYYYYmmmmmK",
+    ".KmmmmmmmmmmmmmK",
+    "..KKKKKKKKKKKKK."
+  ]
+};
+
+function renderFace(canvas, grid){
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let y=0;y<16;y++){
+    const row = grid[y] || '';
+    for(let x=0;x<16;x++){
+      const c = row[x]||'.';
+      const col = PALETTE[c];
+      if(col){ctx.fillStyle=col; ctx.fillRect(x,y,1,1);}
+    }
+  }
+}
+
+/* =================================================================== */
+/* Game state                                                           */
+/* =================================================================== */
+const state = {
+  screen: 'boot',         // boot|title|sort|dialog|dayend|transit|finale
+  planet: 'p1',
+  credits: 0,
+  mood: 'normal',
+  inv: { 'butelki KBK-3':0, 'F-17/B':0 },
+  flags: {},
+  sort: null,             // active scene
+  dialog: null,
+  ending: false,
+  quota: 15,
+  correct: 0,
+  errors: 0,
+  firedInter: new Set(),
+  sfxOn: TWEAKS.sfxOn,
+  textSpeed: TWEAKS.textSpeed,
+  pace: TWEAKS.paceMode,
+};
+
+/* =================================================================== */
+/* Audio (Web Audio API, procedural)                                    */
+/* =================================================================== */
+let actx=null;
+function ensureAudio(){
+  if(!actx){ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} }
+  if(actx && actx.state==='suspended') actx.resume();
+}
+document.addEventListener('visibilitychange',()=>{ if(actx&&!document.hidden) actx.resume(); });
+
+function sfx(kind){
+  if(!state.sfxOn) return;
+  ensureAudio(); if(!actx) return;
+  const t=actx.currentTime;
+  const o=actx.createOscillator(), g=actx.createGain(); o.connect(g); g.connect(actx.destination);
+  if(kind==='stempel'){ o.type='sine'; o.frequency.setValueAtTime(90,t); o.frequency.exponentialRampToValueAtTime(40,t+.12); g.gain.setValueAtTime(.3,t); g.gain.exponentialRampToValueAtTime(.001,t+.15); o.start(t); o.stop(t+.15); }
+  else if(kind==='ding'){ const notes=[523,659,784]; notes.forEach((f,i)=>{ const oo=actx.createOscillator(),gg=actx.createGain(); oo.connect(gg); gg.connect(actx.destination); oo.type='square'; oo.frequency.value=f; gg.gain.setValueAtTime(.0,t+i*.05); gg.gain.linearRampToValueAtTime(.12,t+i*.05+.01); gg.gain.exponentialRampToValueAtTime(.001,t+i*.05+.18); oo.start(t+i*.05); oo.stop(t+i*.05+.2); }); }
+  else if(kind==='error'){ o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.linearRampToValueAtTime(80,t+.25); g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+.28); o.start(t); o.stop(t+.3); }
+  else if(kind==='page'){ const bn=actx.createBufferSource(); const b=actx.createBuffer(1,actx.sampleRate*.12,actx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); bn.buffer=b; const gg=actx.createGain(); gg.gain.value=.18; bn.connect(gg); gg.connect(actx.destination); bn.start(); }
+  else if(kind==='skan'){ o.type='square'; o.frequency.setValueAtTime(1200,t); o.frequency.exponentialRampToValueAtTime(1800,t+.08); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.1); o.start(t); o.stop(t+.1); }
+  else if(kind==='coin'){ o.type='square'; o.frequency.setValueAtTime(900,t); o.frequency.setValueAtTime(1200,t+.05); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.15); o.start(t); o.stop(t+.15); }
+}
+
+/* =================================================================== */
+/* BOOT sequence                                                         */
+/* =================================================================== */
+const bootScript = [
+  "LOADING ASSETS .......... OK",
+  "LOADING AUDIO ........... OK",
+  "DETECTING VGA ........... OK (640x400)",
+  "CHECKING MEMORY ......... 47/48 MB",
+];
+async function runBoot(){
+  const el = document.getElementById('bootLines');
+  for(const line of bootScript){
+    el.textContent += line + "\n";
+    await sleep(380);
+  }
+  document.getElementById('bootPrompt').style.display='block';
+  await waitKey(['t','T','y','Y','Enter',' ']);
+  go('title');
+}
+
+/* =================================================================== */
+/* Helpers                                                               */
+/* =================================================================== */
+const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+function waitKey(keys){
+  return new Promise(res=>{
+    const fn = e=>{ if(!keys || keys.includes(e.key)){ window.removeEventListener('keydown',fn); res(e.key);} };
+    window.addEventListener('keydown',fn);
+    const any = e=>{ if(!keys){ window.removeEventListener('click',any); res('click'); } };
+    if(!keys){ window.addEventListener('click',any,{once:true}); }
+  });
+}
+function waitAnyKey(){
+  return new Promise(res=>{
+    const fk=()=>{cleanup();res();}, fc=()=>{cleanup();res();};
+    const cleanup=()=>{window.removeEventListener('keydown',fk);window.removeEventListener('click',fc);};
+    window.addEventListener('keydown',fk,{once:true});
+    window.addEventListener('click',fc,{once:true});
+  });
+}
+
+function go(scr){
+  state.screen = scr;
+  for(const s of ['boot','title','sort','dialog','dayend','transit','finale']){
+    const el = document.getElementById(s);
+    if(el) el.classList.toggle('hidden', s!==scr && !(scr==='sortWithDialog' && s==='sort'));
+  }
+  const gameOn = !(scr==='boot'||scr==='title');
+  document.getElementById('tabs').classList.toggle('hidden', !gameOn);
+  document.getElementById('tweaksToggle').classList.toggle('hidden', !gameOn);
+  // notify parent (speaker notes pattern, harmless if unused)
+  try{ window.parent.postMessage({slideIndexChanged: {boot:0,title:1,sort:2,dayend:3,transit:4,finale:5}[scr]||0},'*'); }catch(e){}
+}
+
+function toast(txt){
+  const t = document.createElement('div');
+  t.className='toast'; t.textContent=txt;
+  document.getElementById('sort').appendChild(t);
+  setTimeout(()=>t.remove(),2800);
+}
+
+/* =================================================================== */
+/* TITLE STARS                                                          */
+/* =================================================================== */
+(function makeStars(){
+  const holder = document.querySelector('#title .stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('i');
+    s.style.left=Math.random()*1280+'px';
+    s.style.top=Math.random()*800+'px';
+    s.style.animationDelay=(Math.random()*3)+'s';
+    holder.appendChild(s);
+  }
+  const h = document.getElementById('stars2');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('i');
+    s.style.left=(200+Math.random()*1000)+'px';
+    s.style.top=Math.random()*800+'px';
+    s.style.animationDelay=(Math.random()*2.5)+'s';
+    h.appendChild(s);
+  }
+})();
+
+/* =================================================================== */
+/* SORTING CONTENT — P1 BIUROKRACJA-7                                   */
+/* =================================================================== */
+const NUMS = ['F-17/B','F-3','F-22','F-99','F-17/B','F-22','F-17/B','F-3','F-99','F-17/B','F-22','F-3','F-17/B','F-99','F-22'];
+const STAMPS = ['niebieska','niebieska','czarna','niebieska','czerwona','niebieska','czarna','niebieska','czerwona','niebieska','niebieska','czarna','niebieska','czerwona','niebieska'];
+const WET = ['suchy','mokry','suchy','mokry','suchy','mokry','mokry','suchy','mokry','suchy','mokry','mokry','suchy','suchy','mokry'];
+const OBYW = ['Ziemianin','Marsjanin','Ziemianin','Ziemianin','Marsjanin','Inny','Ziemianin','Marsjanin','Ziemianin','Marsjanin','Ziemianin','Ziemianin','Marsjanin','Inny','Ziemianin'];
+const NAMES = ['Kowalski J.','Nowak T.','Xkrgl #3','Wiśniewska A.','M’klorp','Zenek z piwnicy','Kowalska A.','Blorgonauta','Wójcik P.','Qrrrk','Dąbrowski M.','Lewandowska Z.','Fnord J.','Xyzzy B.','Kaczmarek L.'];
+
+function buildPool(){
+  const pool=[];
+  for(let i=0;i<15;i++){
+    const parity = (i+1)%2===0 ? 'parzysta':'nieparzysta';
+    pool.push({
+      id:'f'+i,
+      numer:NUMS[i],
+      pieczatka:STAMPS[i],
+      stempel:WET[i],
+      obywatel:OBYW[i],
+      data:parity,
+      osoba:NAMES[i],
+      dataStr: (i+1)+'.04.2026',
+      sprawa: ['Wniosek o wniosek','Podanie o podanie','Zażalenie','Odwołanie od odwołania','Pokwitowanie','Zgłoszenie','Zaświadczenie','Wniosek','Prośba','Skarga','Petycja'][i%11],
+      okienko: [3,7,12,4,9,2,11,5,8,1][i%10]
+    });
+  }
+  return pool;
+}
+
+const PACE = { fast:[2,3,5,7], normal:[3,6,9,12], slow:[5,8,11,14] };
+function rulesList(pace){
+  const u = PACE[pace]||PACE.normal;
+  return [
+    {id:'r1', unlock:0,  text:'AKCEPT: tylko numer F-17/B. Reszta = ODRZUT.', evaluate:it=> it.numer==='F-17/B' ? 'akcept':'odrzut' },
+    {id:'r2', unlock:u[0], text:'Pieczątka NIEBIESKA = AKCEPT. CZARNA = ODRZUT.', evaluate:it=>{ if(it.pieczatka==='czarna') return 'odrzut'; if(it.pieczatka==='niebieska' && it.numer==='F-17/B') return 'akcept'; return null;} },
+    {id:'r3', unlock:u[1], text:'Data PARZYSTA = PRZEKAŻ WYŻEJ.', evaluate:it=> it.data==='parzysta' ? 'przekaz':null },
+    {id:'r4', unlock:u[2], text:'MARSJANIE: czarna pieczątka = AKCEPT (odwrotnie niż Ziemianie).', evaluate:it=>{ if(it.obywatel==='Marsjanin' && it.pieczatka==='czarna') return 'akcept'; if(it.obywatel==='Marsjanin' && it.pieczatka==='niebieska') return 'odrzut'; return null;} },
+    {id:'r5', unlock:u[3], text:'Stempel MOKRY + niesprawdzony w okienku 12 = ODRZUT (okienko 12 nie istnieje).', evaluate:it=> (it.stempel==='mokry' && it.okienko!==12) ? 'odrzut':null },
+  ];
+}
+
+function evaluateItem(it, zone, rules, unlocked){
+  // rules later override earlier; evaluate highest-priority (last unlocked) first
+  const active = rules.filter(r=>unlocked.has(r.id)).sort((a,b)=>b.unlock-a.unlock);
+  for(const r of active){
+    const v = r.evaluate(it);
+    if(v){ return { expected:v, rule:r.id }; }
+  }
+  // fallback rule 1
+  return { expected: it.numer==='F-17/B' ? 'akcept':'odrzut', rule:'r1' };
+}
+
+/* =================================================================== */
+/* SORTING LOOP                                                         */
+/* =================================================================== */
+function startP1(){
+  state.planet='p1'; state.credits=0; state.correct=0; state.errors=0;
+  state.mood='normal'; state.firedInter=new Set();
+  state.sort = {
+    pool: buildPool(),
+    idx:0,
+    rules: rulesList(state.pace),
+    unlocked: new Set(['r1']),
+    heroTestDone:false,
+  };
+  state.quota = 15;
+  renderFace(document.getElementById('portrait'), FACES.pl_normal);
+  renderRules();
+  renderInv();
+  nextItem();
+  updateTop();
+  go('sort');
+}
+
+function renderRules(){
+  const list = document.getElementById('rulesList');
+  list.innerHTML='';
+  let n=0;
+  for(const r of state.sort.rules){
+    if(state.sort.unlocked.has(r.id)){
+      n++;
+      const d=document.createElement('div');
+      d.className='rule';
+      d.innerHTML='<span class="rn">R'+n+'</span>'+r.text;
+      list.appendChild(d);
+    } else {
+      const d=document.createElement('div');
+      d.className='rule';
+      d.style.opacity=.4;
+      d.innerHTML='<span class="rn">R'+(++n)+'</span><i style="color:#6c8a66">(ukryte — odblokuje się po kolejnych sortowaniach)</i>';
+      list.appendChild(d);
+      break; // only show the next hidden one
+    }
+  }
+  // show remaining as ???
+  const remaining = state.sort.rules.length - Math.max(state.sort.unlocked.size, Array.from(state.sort.unlocked).length);
+}
+
+function renderInv(){
+  const r = document.getElementById('invRow');
+  r.innerHTML='';
+  for(const [k,v] of Object.entries(state.inv)){
+    if(v>0){
+      const c=document.createElement('span'); c.className='chip';
+      c.innerHTML='<b>'+v+'</b>'+k;
+      r.appendChild(c);
+    }
+  }
+  if(!r.children.length){ r.innerHTML='<span class="chip" style="opacity:.5">— pusto —</span>'; }
+}
+
+function updateTop(){
+  document.getElementById('stCur').textContent=state.correct;
+  document.getElementById('stMax').textContent=state.quota;
+  document.getElementById('stCred').textContent=state.credits;
+  document.getElementById('beltCtr').textContent='PRZEDMIOT '+(state.sort.idx+1)+'/'+state.sort.pool.length;
+}
+
+function selectMood(){
+  if(TWEAKS.moodOverride && TWEAKS.moodOverride!=='auto') return 'pl_'+TWEAKS.moodOverride;
+  if(state.mood==='surprised' || state.mood==='panicked') return 'pl_'+state.mood;
+  if(state.correct >= 10) return 'pl_tired';
+  if(state.credits >= 200) return 'pl_greedy';
+  return 'pl_normal';
+}
+function refreshMood(){
+  renderFace(document.getElementById('portrait'), FACES[selectMood()]);
+}
+
+/* ========= Render current card ========= */
+function renderCard(it){
+  const slot = document.getElementById('cardSlot');
+  slot.innerHTML = '';
+  const card = document.createElement('div');
+  card.className='card';
+  card.id='curCard';
+  const wetCls = it.stempel==='mokry' ? 'mokry':'suchy';
+  const pieczCls = it.pieczatka;
+  const pieczText = it.pieczatka==='niebieska'?'MIN. SPRAW WEW.':it.pieczatka==='czarna'?'URZ. GŁ.':'ARCH. ŚW.';
+  card.innerHTML = `
+    <div class="paper">
+      <div class="hdr">
+        <div class="no">FORMULARZ ${it.numer}</div>
+        <div class="dz">dz. ${it.dataStr}</div>
+      </div>
+      <div class="photo"></div>
+      <h3>SPRAWA: ${it.sprawa.toUpperCase()}</h3>
+      <div class="row"><span>Obywatel</span><b>${it.osoba}</b></div>
+      <div class="row"><span>Pochodzenie</span><b>${it.obywatel}</b></div>
+      <div class="row"><span>Data</span><b>${it.dataStr} (${it.data})</b></div>
+      <div class="row"><span>Pieczątka</span><b>${it.pieczatka}</b></div>
+      <div class="row"><span>Stempel</span><b>${it.stempel}</b></div>
+      <div class="row"><span>Okienko wer.</span><b>${it.okienko}</b></div>
+      <div class="footer"><span>podpis: ..............</span><span>egz. A</span></div>
+      <div class="stamp ${pieczCls} ${wetCls}">${pieczText}</div>
+    </div>`;
+  slot.appendChild(card);
+  installDrag(card);
+}
+
+function installDrag(card){
+  let sx=0,sy=0,ox=0,oy=0,moving=false;
+  const rectBase = card.getBoundingClientRect();
+  const scaleInv = () => { const s = document.getElementById('stage'); const m = s.style.transform.match(/scale\(([\d.]+)\)/); return m? 1/parseFloat(m[1]):1; };
+  function down(e){
+    ensureAudio();
+    moving=true; card.classList.add('dragging');
+    const pt = 'touches' in e ? e.touches[0] : e;
+    sx=pt.clientX; sy=pt.clientY;
+    const r = card.getBoundingClientRect();
+    ox = r.left; oy = r.top;
+    card.style.transform='translate(-50%,-50%)';
+    e.preventDefault();
+  }
+  function move(e){
+    if(!moving) return;
+    const pt = 'touches' in e ? e.touches[0] : e;
+    const k = scaleInv();
+    const dx = (pt.clientX - sx)*k;
+    const dy = (pt.clientY - sy)*k;
+    card.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px))';
+    // hover zone
+    document.querySelectorAll('.zone').forEach(z=>z.classList.remove('hover'));
+    const el = document.elementFromPoint(pt.clientX, pt.clientY);
+    const zone = el && el.closest('.zone');
+    if(zone) zone.classList.add('hover');
+  }
+  function up(e){
+    if(!moving) return;
+    moving=false; card.classList.remove('dragging');
+    const pt = 'changedTouches' in e ? e.changedTouches[0] : e;
+    const el = document.elementFromPoint(pt.clientX, pt.clientY);
+    const zone = el && el.closest('.zone');
+    document.querySelectorAll('.zone').forEach(z=>z.classList.remove('hover'));
+    if(zone){ chooseZone(zone.dataset.zone); }
+    else { card.style.transform='translate(-50%,-50%)'; }
+  }
+  card.addEventListener('mousedown',down);
+  window.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',up);
+  card.addEventListener('touchstart',down,{passive:false});
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('touchend',up);
+}
+
+function nextItem(){
+  if(state.sort.idx >= state.sort.pool.length){
+    endDay();
+    return;
+  }
+  const it = state.sort.pool[state.sort.idx];
+  renderCard(it);
+  updateTop();
+}
+
+function chooseZone(zoneId){
+  const it = state.sort.pool[state.sort.idx];
+  const {expected, rule} = evaluateItem(it, zoneId, state.sort.rules, state.sort.unlocked);
+  const correct = (expected===zoneId);
+  flash(correct?'ok':'err');
+  if(correct){
+    sfx('stempel'); setTimeout(()=>sfx('ding'),120);
+    state.correct++; state.credits += 2;
+    // chance of butelki KBK-3 drop
+    if(Math.random()<0.22){ state.inv['butelki KBK-3']++; toast('+ BUTELKA KBK-3 (dla Zenka)'); }
+  } else {
+    sfx('error');
+    state.errors++;
+    state.mood='panicked';
+    setTimeout(()=>{ state.mood='normal'; refreshMood(); }, 900);
+    toast('✗ Zła strefa. Poprawnie: '+expected.toUpperCase());
+  }
+  refreshMood();
+  // evolve rules
+  for(const r of state.sort.rules){
+    if(!state.sort.unlocked.has(r.id) && state.correct >= r.unlock){
+      state.sort.unlocked.add(r.id);
+      renderRules();
+      // highlight newest
+      const list = document.getElementById('rulesList');
+      const n = list.querySelectorAll('.rule');
+      const newest = n[n.length-2] || n[n.length-1];
+      if(newest){ newest.classList.add('new'); setTimeout(()=>newest.classList.remove('new'),1300); }
+      toast('★ NOWA REGUŁA: '+r.text.split('.')[0]);
+      sfx('ding');
+    }
+  }
+  state.sort.idx++;
+  renderInv();
+  updateTop();
+
+  // HERO TEST trigger — at item 11 (after r5 active), Helena's formularz inserted
+  if(!state.sort.heroTestDone && state.sort.unlocked.has('r5') && state.correct>=6){
+    state.sort.heroTestDone = true;
+    setTimeout(()=>heroTest(), 400);
+    return;
+  }
+  // Zenek dialog at item 5
+  if(state.sort.idx===5 && !state.flags.zenek){
+    state.flags.zenek=true;
+    setTimeout(()=>openDialog('zenek'), 500);
+    return;
+  }
+  setTimeout(nextItem, 220);
+}
+
+function flash(kind){
+  const f = document.getElementById(kind==='ok'?'flashOk':'flashErr');
+  f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+
+/* ========= HERO TEST — Pani Helena ========= */
+function heroTest(){
+  // Insert a special formularz with all Helena data + mokry + okienko 12
+  const helenaForm = {
+    id:'helena_test',
+    numer:'F-17/B',
+    pieczatka:'niebieska',
+    stempel:'mokry',
+    obywatel:'Ziemianin',
+    data:'nieparzysta',
+    osoba:'Helena Kowalczyk (okienko 7)',
+    dataStr:'17.04.2026',
+    sprawa:'WNIOSEK O TEST PANA',
+    okienko:12,
+    _isHeroTest:true,
+  };
+  // overlay: show the card + open dialog overlap
+  state.sort.pool.splice(state.sort.idx, 0, helenaForm);
+  renderCard(helenaForm);
+  updateTop();
+  openDialog('helena_test');
+}
+
+/* =================================================================== */
+/* DIALOG SYSTEM                                                        */
+/* =================================================================== */
+const DIALOGS = {
+  zenek: {
+    who:'PAN ZENEK ZE SKUPU BUTELEK', portrait:FACES.pl_tired, node:'z_start',
+    nodes:{
+      z_start:{txt:'Witam. Pan z butelkami? KBK-3 tylko biorę. Bez kapsla nie biorę. Pęknięte nie biorę. W skrzynce po 6 mają być. I etykieta oryginalna.', ch:[
+        {t:'Co pan z nimi robi?', go:'z_co'},
+        {t:'Ile pan płaci?', go:'z_ile'},
+        {t:'A muszę?', go:'z_musze'},
+      ]},
+      z_co:{txt:'Co pan, milicjant? Panu swoje. Mnie moje. Uzbiera pan 30 szt., ja dam 60 groszy. Tak mówię pan. 60.', ch:[
+        {t:'To mniej niż grosz za sztukę...', go:'z_math'},
+        {t:'Zgoda. [przyjmij quest]', go:'z_accept', effect:()=>{ state.flags.acceptedZenk=true; toast('★ QUEST: uzbieraj 30 butelek KBK-3'); }},
+      ]},
+      z_ile:{txt:'Sześćdziesiąt groszy za trzydzieści sztuk. Pan liczy? Jak pan liczy to pan się odchodzi.', ch:[
+        {t:'Zgoda. [przyjmij quest]', go:'z_accept', effect:()=>{ state.flags.acceptedZenk=true; toast('★ QUEST: uzbieraj 30 butelek KBK-3'); }},
+        {t:'Dziękuję, nie.', go:'z_end'},
+      ]},
+      z_musze:{txt:'Pan nie musi. Ja też nie muszę. Ale jak pan przywiezie 30 szt., to ja panu dam 60 groszy. I nie mówimy nikomu za ile.', ch:[
+        {t:'Zgoda. [przyjmij quest]', go:'z_accept', effect:()=>{ state.flags.acceptedZenk=true; toast('★ QUEST: uzbieraj 30 butelek KBK-3'); }},
+        {t:'Odchodzę.', go:'z_end'},
+      ]},
+      z_math:{txt:'Pan matematyk, co? To niech pan idzie do banku centralnego Marsa. U mnie 60 groszy i koniec pieśni. Bo butelki nie są państwowe.', ch:[
+        {t:'...no dobra.', go:'z_accept', effect:()=>{ state.flags.acceptedZenk=true; toast('★ QUEST: uzbieraj 30 butelek KBK-3'); }},
+      ]},
+      z_accept:{txt:'To proszę. Niech pan sortuje dalej. Butelki czasem lecą zawinięte w gazetę. Trzeba mieć oko.', ch:[{t:'[wracam do sortowania]', go:null}]},
+      z_end:{txt:'Pan odchodzi. Pan odchodzi ze świata dorosłych. Następny!', ch:[{t:'[wracam do sortowania]', go:null}]},
+    }
+  },
+  helena_test:{
+    who:'PANI HELENA Z OKIENKA', portrait:FACES.helena, node:'h_start', hero:true,
+    nodes:{
+      h_start:{txt:'Proszę Pana, to mój formularz. Widzi Pan moje dane. Widzi Pan moją pieczątkę. Proszę się nie bać. Niech pan przeanalizuje. Według regulaminu.', ch:[
+        {t:'Stempel mokry + okienko 12 nie istnieje → ODRZUT.', go:'h_win', effect:()=>choose('odrzut', true)},
+        {t:'To pani formularz — AKCEPT.', go:'h_lose', effect:()=>choose('akcept', true)},
+        {t:'Nie wiem, PRZEKAŻĘ WYŻEJ.', go:'h_lose', effect:()=>choose('przekaz', true)},
+      ]},
+      h_win:{txt:'Dziękuję. Mój formularz to był test. Zdał Pan. Awansuje Pan do okienka odbioru awansów.', ch:[
+        {t:'Dziękuję, Pani Heleno.', go:'h_num'},
+      ]},
+      h_num:{txt:'Nie ma za co. Numerek pan ma?', ch:[
+        {t:'...numerek?', go:'h_done', effect:()=>{ state.mood='surprised'; refreshMood(); state.credits+=20; state.inv['F-17/B']=(state.inv['F-17/B']||0)+5; toast('★ +20 ₢ · +5 F-17/B · WYJŚCIE ODBLOKOWANE'); state.flags.helenaPassed=true; }},
+      ]},
+      h_done:{txt:'Tak pan, numerek. Numerek ma pan. Bardzo dobrze. Proszę lot na Hyper-Mart Galaktyczny, bilet 20 ₢. Miłego dnia pracy. I nie mów nikomu, że był pan dobry.', ch:[
+        {t:'[zamknij okno dialogowe]', go:null, effect:()=>{ endDay(); }}
+      ]},
+      h_lose:{txt:'Nie. Pan nie zdał. Ale spoko, nikomu nie powiem. Niech pan dalej sortuje. Test będzie jeszcze raz, kiedyś, za rok może.', ch:[
+        {t:'[wracam do sortowania]', go:null}
+      ]},
+    }
+  },
+};
+
+function choose(zoneId, fromHero){
+  // direct zone choice from hero test
+  if(fromHero){
+    // remove helena form from pool; no scoring penalty either way
+    const it = state.sort.pool[state.sort.idx];
+    if(it && it._isHeroTest){ state.sort.pool.splice(state.sort.idx,1); renderCard(state.sort.pool[state.sort.idx]||{}); updateTop(); }
+  }
+}
+
+let dialogTyping=null;
+function openDialog(key){
+  const d = DIALOGS[key]; if(!d) return;
+  state.dialog = { key, nodeId:d.node };
+  document.getElementById('dialog').classList.remove('hidden');
+  document.getElementById('dialog').classList.toggle('heroine', !!d.hero);
+  document.getElementById('dWho').textContent = d.who;
+  renderFace(document.getElementById('npcPortrait'), d.portrait);
+  renderDialogNode();
+}
+function renderDialogNode(){
+  const d = DIALOGS[state.dialog.key];
+  const n = d.nodes[state.dialog.nodeId];
+  const txtEl = document.getElementById('dTxt');
+  const chEl = document.getElementById('dChoices');
+  chEl.innerHTML=''; txtEl.textContent='';
+  sfx('page');
+  // typewriter
+  if(dialogTyping) clearInterval(dialogTyping);
+  let i=0;
+  const speed = 1000/Math.max(8,TWEAKS.textSpeed||30);
+  dialogTyping = setInterval(()=>{
+    txtEl.textContent = n.txt.slice(0, ++i);
+    if(i>=n.txt.length){ clearInterval(dialogTyping); dialogTyping=null; renderChoices(n); }
+  }, speed);
+  // click to skip
+  txtEl.onclick = ()=>{ if(dialogTyping){ clearInterval(dialogTyping); dialogTyping=null; txtEl.textContent=n.txt; renderChoices(n); } };
+}
+function renderChoices(n){
+  const chEl = document.getElementById('dChoices');
+  chEl.innerHTML='';
+  n.ch.forEach((c,i)=>{
+    const b = document.createElement('div');
+    b.className='choice';
+    b.innerHTML='<span class="k">['+(i+1)+']</span>'+c.t;
+    b.onclick = ()=>pickChoice(c);
+    chEl.appendChild(b);
+  });
+}
+function pickChoice(c){
+  sfx('skan');
+  if(c.effect) c.effect();
+  if(c.go){ state.dialog.nodeId=c.go; renderDialogNode(); }
+  else { closeDialog(); }
+}
+function closeDialog(){
+  document.getElementById('dialog').classList.add('hidden');
+  state.dialog=null;
+  // if pool changed during hero test, jump into the next item
+  if(state.sort && state.screen==='sort'){
+    // if current card is gone (hero test removed), redraw
+    if(!document.getElementById('curCard')){
+      nextItem();
+    }
+  }
+}
+
+/* Keyboard shortcuts */
+window.addEventListener('keydown', e=>{
+  if(state.screen==='sort' && !state.dialog){
+    if(e.key==='1'){ chooseZone('akcept'); }
+    else if(e.key==='2'){ chooseZone('odrzut'); }
+    else if(e.key==='3'){ chooseZone('przekaz'); }
+  } else if(state.screen==='dialog' || state.dialog){
+    const idx = parseInt(e.key,10);
+    if(!isNaN(idx) && idx>=1 && idx<=4){
+      const btns = document.querySelectorAll('#dChoices .choice');
+      if(btns[idx-1]) btns[idx-1].click();
+    }
+  }
+});
+
+/* Skip & hint buttons */
+document.getElementById('btnSkip').onclick = ()=>{
+  // skip = pass with the expected zone (but count it as correct? No — count as correct. Design courtesy in prototype.)
+  if(!state.sort || state.dialog) return;
+  const it = state.sort.pool[state.sort.idx];
+  if(!it) return;
+  const {expected} = evaluateItem(it, null, state.sort.rules, state.sort.unlocked);
+  chooseZone(expected);
+};
+document.getElementById('btnHint').onclick = ()=>{
+  if(!state.sort || state.dialog) return;
+  const it = state.sort.pool[state.sort.idx]; if(!it) return;
+  const {expected} = evaluateItem(it, null, state.sort.rules, state.sort.unlocked);
+  toast('PODPOWIEDŹ: poprawnie = '+expected.toUpperCase());
+};
+
+/* =================================================================== */
+/* DAY END                                                              */
+/* =================================================================== */
+function endDay(){
+  const cor = state.correct, err = state.errors;
+  const pay = cor*2;
+  const bonus = state.flags.helenaPassed ? 20 : 0;
+  document.getElementById('eCor').textContent = cor;
+  document.getElementById('eErr').textContent = err;
+  // animate
+  let p=0,t=0;
+  const ePay=document.getElementById('ePay'), eQuest=document.getElementById('eQuest'), eTot=document.getElementById('eTot');
+  ePay.textContent='0 ₢'; eQuest.textContent='0 ₢'; eTot.textContent='0 ₢';
+  go('dayend');
+  const int = setInterval(()=>{
+    if(p<pay){ p+=2; sfx('coin'); ePay.textContent=p+' ₢'; }
+    else if(t<bonus){ t+=4; sfx('coin'); eQuest.textContent=t+' ₢'; }
+    else { eTot.textContent=(p+t)+' ₢'; clearInterval(int); }
+  }, 90);
+  state.credits = pay+bonus;
+}
+
+document.getElementById('btnFly').onclick = ()=>{
+  // transit → P2 preview → eventually finale
+  go('transit');
+  document.getElementById('transitCap').textContent = 'Lecę na HYPER-MART GALAKTYCZNY...';
+  setTimeout(()=>{ go('finale'); kickFinale(); }, 2800);
+};
+
+/* =================================================================== */
+/* FINALE                                                               */
+/* =================================================================== */
+async function kickFinale(){
+  renderFace(document.getElementById('helenaFinalPortrait'), FACES.helena);
+  // wait ~6s (shortened from 30s in doc) then helena slides in
+  await sleep(6000);
+  document.getElementById('helenaClose').classList.add('up');
+}
+
+/* =================================================================== */
+/* TABS (jump between stations for preview)                             */
+/* =================================================================== */
+document.querySelectorAll('#tabs .tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('#tabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const j = t.dataset.jump;
+    if(j==='p1'){ applyPalette('p1'); document.getElementById('planetName').textContent='BIUROKRACJA-7 · STACJA Q-4'; document.getElementById('planetSub').textContent='sortownia odpadów pozaziemskich · zmiana II'; startP1(); }
+    else if(j==='p2'){ applyPalette('p2'); previewP2(); }
+    else if(j==='p3'){ applyPalette('p3'); previewP3(); }
+    else if(j==='p4'){ applyPalette('p4'); previewP4(); }
+    else if(j==='finale'){ go('finale'); kickFinale(); }
+  };
+});
+
+function applyPalette(p){
+  const r = document.documentElement.style;
+  if(p==='p1'){ r.setProperty('--p-bg','#1a2a1a'); r.setProperty('--p-bg-2','#223322'); r.setProperty('--p-ink','#b8d9b0'); r.setProperty('--p-frame','#8a9f7a'); r.setProperty('--p-frame-dk','#324a2e'); r.setProperty('--p-accent','#d8c34c'); }
+  else if(p==='p2'){ r.setProperty('--p-bg','#cfccbf'); r.setProperty('--p-bg-2','#e8e8e0'); r.setProperty('--p-ink','#1c1c1c'); r.setProperty('--p-frame','#ffffff'); r.setProperty('--p-frame-dk','#8a8070'); r.setProperty('--p-accent','#e03a7a'); }
+  else if(p==='p3'){ r.setProperty('--p-bg','#2b1740'); r.setProperty('--p-bg-2','#3a1f5a'); r.setProperty('--p-ink','#e7d6ff'); r.setProperty('--p-frame','#8a5ab0'); r.setProperty('--p-frame-dk','#1a0a2a'); r.setProperty('--p-accent','#5ad0d8'); }
+  else if(p==='p4'){ r.setProperty('--p-bg','#1a1a1a'); r.setProperty('--p-bg-2','#2a2a2a'); r.setProperty('--p-ink','#c9c9c9'); r.setProperty('--p-frame','#6a6a6a'); r.setProperty('--p-frame-dk','#0c0c0c'); r.setProperty('--p-accent','#d8c34c'); }
+}
+
+/* Preview scenes for P2/P3/P4 — lighter content to show design range */
+function previewP2(){
+  startP1(); // reuse station shell
+  document.getElementById('planetName').textContent='HYPER-MART GALAKTYCZNY · KASA 47';
+  document.getElementById('planetSub').textContent='Customer Delight Programme™ · zmiana premium';
+  document.getElementById('questTxt').textContent='Officer 4782-B: „Proszę podpisać klauzulę w 17 miejscach.”';
+  // rewrite rules panel header feel
+  state.sort.rules = [
+    {id:'r1',unlock:0,text:'SCAN all TIER-GOLD items. Flag >500₢ to SUPERVISOR.',evaluate:it=>it.numer==='F-17/B'?'akcept':'odrzut'},
+    {id:'r2',unlock:2,text:'DECLINE items from DEPRECATED-EARTH-CATALOG (butelki, gazety).',evaluate:it=>it.pieczatka==='czarna'?'odrzut':null},
+    {id:'r3',unlock:5,text:'MONETIZE OPPORTUNITY: TIER-BRONZE → SUPERVISOR.',evaluate:it=>it.data==='parzysta'?'przekaz':null},
+    {id:'r4',unlock:9,text:'APPLY CASHBACK 0.3% on Q4 PROMO if DELIGHTFUL.',evaluate:it=>null},
+  ];
+  state.sort.unlocked = new Set(['r1']);
+  renderRules();
+  document.querySelectorAll('.zone').forEach((z,i)=>{
+    const labels = [['✓ SKANUJ','ring up'],['✗ ODMÓW','deprecated'],['↑ SUPERVISOR','flag up'],];
+    if(labels[i]){ z.querySelector('.icn').textContent=labels[i][0]; z.querySelector('.sub').textContent=labels[i][1]; }
+  });
+}
+function previewP3(){
+  startP1();
+  document.getElementById('planetName').textContent='FLARGLEBLOOP-IV · STACJA 3-OCZU';
+  document.getElementById('planetSub').textContent='segregacja żółtości · czas gra rolę';
+  document.getElementById('questTxt').textContent='Blorgonauta Xyzzy: „Zdobądź surowiec NAPRAWDĘ ŻÓŁTY PODCZAS WTORKU. Albo kamień.”';
+  state.sort.rules = [
+    {id:'r1',unlock:0,text:'NAPRAWDĘ ŻÓŁTY = żółty z fioletem.',evaluate:it=>'akcept'},
+    {id:'r2',unlock:2,text:'BARDZO ŻÓŁTY = żółty z zielonymi kropkami. NAPRAWDĘ ŻÓŁTY teraz = cyjan.',evaluate:it=>null},
+    {id:'r3',unlock:4,text:'Wszystko jest NIE-ŻÓŁTE. Poza żółtym. Ten żółty jest BARDZO ŻÓŁTY.',evaluate:it=>null},
+  ];
+  state.sort.unlocked = new Set(['r1']);
+  renderRules();
+  document.querySelectorAll('.zone').forEach((z,i)=>{
+    const labels=[['ŻÓŁTY','zwykły'],['BARDZO ŻÓŁTY','z kropkami'],['NAPRAWDĘ ŻÓŁTY','z fioletem']];
+    if(labels[i]){ z.querySelector('.icn').textContent=labels[i][0]; z.querySelector('.sub').textContent=labels[i][1]; }
+  });
+}
+function previewP4(){
+  startP1();
+  document.getElementById('planetName').textContent='STACJA KOŃCOWA · SALA TRONOWA';
+  document.getElementById('planetSub').textContent='meta-sortowanie życia · arbitraż ostateczny';
+  document.getElementById('questTxt').textContent='Arbiter Śmieci: „Przynieś mi MÓJ ZAGUBIONY PORTFEL. Zostawiłem go w nebuli.”';
+  state.sort.rules = [
+    {id:'r1',unlock:0,text:'Sortuj do 4 kategorii. Arbiter akceptuje wszystko.',evaluate:it=>'akcept'},
+  ];
+  state.sort.unlocked = new Set(['r1']);
+  renderRules();
+  document.querySelectorAll('.zone').forEach((z,i)=>{
+    const labels=[['W LEWEJ RĘCE','rzeczy zebrane'],['Z DZIECIŃSTWA','rzeczy pamiętane'],['FIOLETOWE','metafizycznie']];
+    if(labels[i]){ z.querySelector('.icn').textContent=labels[i][0]; z.querySelector('.sub').textContent=labels[i][1]; z.querySelector('.sub').style.textTransform='none'; }
+  });
+}
+
+/* =================================================================== */
+/* TWEAKS wiring                                                        */
+/* =================================================================== */
+function applyTweaks(){
+  document.documentElement.style.setProperty('--crt', String(TWEAKS.crtIntensity));
+  applyPalette(TWEAKS.palette);
+  state.sfxOn = !!TWEAKS.sfxOn;
+  state.textSpeed = TWEAKS.textSpeed;
+  state.pace = TWEAKS.paceMode;
+  document.getElementById('tkCrt').value = TWEAKS.crtIntensity;
+  document.getElementById('tkPalette').value = TWEAKS.palette;
+  document.getElementById('tkPace').value = TWEAKS.paceMode;
+  document.getElementById('tkMood').value = TWEAKS.moodOverride || 'auto';
+  document.getElementById('tkSfx').textContent = TWEAKS.sfxOn?'ON':'OFF';
+  document.getElementById('tkTxt').value = TWEAKS.textSpeed;
+  refreshMood?.();
+}
+function pushTweak(edits){
+  Object.assign(TWEAKS, edits);
+  try{ window.parent.postMessage({type:'__edit_mode_set_keys', edits},'*'); }catch(e){}
+  applyTweaks();
+}
+document.getElementById('tkCrt').oninput = e=>pushTweak({crtIntensity:parseFloat(e.target.value)});
+document.getElementById('tkPalette').onchange = e=>pushTweak({palette:e.target.value});
+document.getElementById('tkPace').onchange = e=>pushTweak({paceMode:e.target.value});
+document.getElementById('tkMood').onchange = e=>{ pushTweak({moodOverride:e.target.value}); refreshMood(); };
+document.getElementById('tkSfx').onclick = ()=>pushTweak({sfxOn:!TWEAKS.sfxOn});
+document.getElementById('tkTxt').oninput = e=>pushTweak({textSpeed:parseInt(e.target.value,10)});
+document.getElementById('tkReset').onclick = ()=>{ startP1(); };
+document.getElementById('tkSkip').onclick = ()=>{ go('finale'); kickFinale(); };
+
+document.getElementById('tweaksToggle').onclick = ()=>{
+  const tw = document.getElementById('tweaks');
+  const shown = tw.style.display!=='none';
+  tw.style.display = shown?'none':'block';
+  tw.classList.toggle('hidden', shown);
+};
+
+/* Edit-mode handshake */
+window.addEventListener('message', e=>{
+  if(!e.data) return;
+  if(e.data.type==='__activate_edit_mode'){ const tw=document.getElementById('tweaks'); tw.classList.remove('hidden'); tw.style.display='block'; }
+  if(e.data.type==='__deactivate_edit_mode'){ const tw=document.getElementById('tweaks'); tw.classList.add('hidden'); tw.style.display='none'; }
+});
+try{ window.parent.postMessage({type:'__edit_mode_available'},'*'); }catch(e){}
+
+/* =================================================================== */
+/* ENTRY                                                                */
+/* =================================================================== */
+document.getElementById('title').addEventListener('click', ()=>{ ensureAudio(); startP1(); });
+window.addEventListener('keydown', e=>{
+  if(state.screen==='title'){ ensureAudio(); startP1(); }
+});
+
+applyTweaks();
+runBoot();
+</script>
+</body>
+</html>
