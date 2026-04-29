@@ -1,7 +1,20 @@
+import { useEffect, useState } from 'react';
 import { useStore } from '@/state/store';
 import { selectMood } from '@/state/selectors';
+import { onPresenceChange, getPresenceCount } from '@/state/presence';
 import { PixelPortrait } from '../PixelPortrait';
 import { PLANETS } from '@/content/planets';
+
+function presenceLabel(planet: string, others: number): string {
+  if (others <= 0) return '';
+  const word = others === 1 ? 'inny Śmieciarz' : 'innych Śmieciarzy';
+  const place =
+    planet === 'p1' ? 'przy taśmie' :
+    planet === 'p2' ? 'w kasie' :
+    planet === 'p3' ? 'wśród żółtości' :
+    planet === 'p4' ? 'w sali tronowej' : '';
+  return `👥 ${others} ${word} ${place}`.trim();
+}
 
 export function TopBar() {
   const planet = useStore((s) => s.planet);
@@ -11,13 +24,19 @@ export function TopBar() {
   const meta = PLANETS[planet];
   const correct = sorting?.correct ?? 0;
   const quota = sorting?.pool.length ?? 15;
+  const [presenceCount, setPresenceCount] = useState(getPresenceCount());
+
+  useEffect(() => onPresenceChange(setPresenceCount), []);
+  const others = Math.max(0, presenceCount - 1);
+  const presence = presenceLabel(planet, others);
 
   return (
     <div className="topbar">
       <PixelPortrait face={mood} size={56} className="portrait" />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
         <div className="lblAcc">{meta.name}</div>
         <div className="vtS">{meta.sub}</div>
+        {presence && <div className="topbar-presence">{presence}</div>}
       </div>
       <div className="stat">
         <div className="k">Kontyngent</div>

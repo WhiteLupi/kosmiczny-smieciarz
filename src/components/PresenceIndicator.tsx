@@ -33,7 +33,8 @@ export function PresenceIndicator() {
     };
   }, [mode, planet, userId, anonNick]);
 
-  // count includes self → show only when >1
+  // In sorting mode TopBar shows it inline; corner indicator is only for non-sorting screens
+  if (mode === 'sorting' || mode === 'boot' || mode === 'title') return null;
   if (count <= 1) return null;
   const others = count - 1;
   return (

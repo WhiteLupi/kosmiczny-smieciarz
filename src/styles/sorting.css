@@ -24,6 +24,13 @@
 .stat .k { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--p-ink-dim); letter-spacing: 1px; }
 .stat .v { font-family: 'VT323', monospace; font-size: 28px; color: var(--p-frame-hi); line-height: 1; }
 .vtS { font-family: 'VT323', monospace; font-size: 18px; line-height: 1.1; }
+.topbar-presence {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--p-ink-dim);
+  line-height: 1;
+  margin-top: 2px;
+}
 
 .midgrid {
   display: grid;

@@ -19,7 +19,7 @@ export function FormCard({ item }: { item: SortingItem }) {
       </h3>
       <div className="cardrow"><span>Obywatel</span><b>{item.osoba}</b></div>
       <div className="cardrow"><span>Pochodzenie</span><b>{item.obywatel}</b></div>
-      <div className="cardrow"><span>Data</span><b>{item.dataStr} ({item.data})</b></div>
+      <div className="cardrow"><span>Data</span><b>{item.dataStr}</b></div>
       <div className="cardrow"><span>Pieczątka</span><b>{item.pieczatka}</b></div>
       <div className="cardrow"><span>Stempel</span><b>{item.stempel}</b></div>
       <div className="cardrow"><span>Okienko wer.</span><b>{item.okienko}</b></div>
