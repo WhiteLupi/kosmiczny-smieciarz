@@ -1,0 +1,27 @@
+@keyframes blink { 50% { opacity: 0; } }
+
+@keyframes twinkle { 50% { opacity: .2; } }
+
+@keyframes drift { 50% { transform: translateY(-8px); } }
+
+@keyframes slide {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-200px); opacity: 0; }
+}
+
+@keyframes flashA {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes toast {
+  0% { opacity: 0; transform: translate(-50%, -20px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, 10px); }
+}
+
+@keyframes newRule {
+  0% { background: #d8c34c; color: #111; transform: translateX(-10px); }
+  100% { background: #2e3a12; color: #cfe6c8; transform: none; }
+}
