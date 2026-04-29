@@ -7,6 +7,7 @@ export interface MetaSlice {
   anonNick: string;
   setGameStartedAt: (t: number | null) => void;
   ensureAnonNick: () => string;
+  setAnonNick: (n: string) => void;
 }
 
 function generateNick(): string {
@@ -24,5 +25,9 @@ export const createMetaSlice: StateCreator<MetaSlice> = (set, get) => ({
     const n = generateNick();
     set({ anonNick: n });
     return n;
+  },
+  setAnonNick: (n) => {
+    const trimmed = n.trim().slice(0, 32);
+    if (trimmed) set({ anonNick: trimmed });
   },
 });
