@@ -1,6 +1,7 @@
 import { useStore } from '@/state/store';
 import { BootScreen } from './BootScreen';
 import { TitleScreen } from './TitleScreen';
+import { SortingStation } from './SortingStation';
 
 export function ScreenRouter() {
   const mode = useStore((s) => s.mode);
@@ -10,11 +11,7 @@ export function ScreenRouter() {
     case 'title':
       return <TitleScreen />;
     case 'sorting':
-      return (
-        <div className="screen" style={{ padding: 40 }}>
-          SORTING — implementacja w Phase 8-9
-        </div>
-      );
+      return <SortingStation />;
     case 'transit':
       return (
         <div className="screen" style={{ padding: 40 }}>
