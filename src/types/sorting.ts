@@ -39,4 +39,5 @@ export interface SortingState {
   errors: number;
   heroTestDone: boolean;
   firedInterruptions: Set<string>;
+  hintsRemaining: number;
 }

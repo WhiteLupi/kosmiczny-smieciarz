@@ -18,6 +18,7 @@ interface PersistedSorting {
   errors: number;
   heroTestDone: boolean;
   firedInterruptions: string[];
+  hintsRemaining?: number;
 }
 
 interface PersistedPuzzle {
@@ -101,6 +102,7 @@ export function serialize(s: GameStore): PersistedSnapshot {
           errors: s.sorting.errors,
           heroTestDone: s.sorting.heroTestDone,
           firedInterruptions: Array.from(s.sorting.firedInterruptions),
+          hintsRemaining: s.sorting.hintsRemaining,
         }
       : undefined,
     puzzle: Object.fromEntries(
@@ -162,6 +164,7 @@ export function rehydrate(snap: PersistedSnapshot): void {
         errors: ss.errors,
         heroTestDone: ss.heroTestDone,
         firedInterruptions: new Set(ss.firedInterruptions),
+        hintsRemaining: ss.hintsRemaining ?? 3,
       },
     });
   }

@@ -5,7 +5,6 @@ import type { ZoneId } from '@/types/sorting';
 
 interface Props {
   onChoose: (id: ZoneId) => void;
-  onSkip: () => void;
   onHint: () => void;
 }
 
@@ -39,17 +38,25 @@ function Zone({
   );
 }
 
-export function DropZones({ onChoose, onSkip, onHint }: Props) {
+export function DropZones({ onChoose, onHint }: Props) {
   const planet = useStore((s) => s.planet);
+  const hintsRemaining = useStore((s) => s.sorting?.hintsRemaining ?? 0);
   const zones = PLANETS[planet].zoneLabels;
+  const noHints = hintsRemaining <= 0;
   return (
     <div className="zones">
       {zones.map((z) => (
         <Zone key={z.id} id={z.id} icon={z.icon} sub={z.sub} hint={KEY_HINT[z.id]} onChoose={onChoose} />
       ))}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <button className="btn primary" onClick={onSkip}>DALEJ ▸</button>
-        <button className="btn ghost" onClick={onHint}>? PODPOWIEDŹ</button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center' }}>
+        <button
+          className="btn ghost"
+          onClick={onHint}
+          disabled={noHints}
+          style={noHints ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+        >
+          ? PODPOWIEDŹ ({hintsRemaining}/3)
+        </button>
       </div>
     </div>
   );

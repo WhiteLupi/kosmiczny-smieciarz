@@ -34,6 +34,9 @@ export function PlanetTabs() {
   const paceMode = useStore((s) => s.tweaks.paceMode);
 
   if (mode === 'boot' || mode === 'title') return null;
+  // Dev-only: planet tabs are debug/showcase, hidden in production unless ?dev in URL
+  const isDev = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev');
+  if (!isDev) return null;
 
   function jump(id: PlanetId | 'finale') {
     closeDialog();

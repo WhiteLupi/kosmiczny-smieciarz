@@ -10,9 +10,10 @@ export interface SortingSlice {
   removeCurrentItem: () => void;
   markInterruption: (id: string) => void;
   setHeroTestDone: () => void;
+  consumeHint: () => boolean;
 }
 
-export const createSortingSlice: StateCreator<SortingSlice> = (set) => ({
+export const createSortingSlice: StateCreator<SortingSlice> = (set, get) => ({
   sorting: null,
   startSortingScene: ({ sceneId, pool, rules }) =>
     set({
@@ -26,6 +27,7 @@ export const createSortingSlice: StateCreator<SortingSlice> = (set) => ({
         errors: 0,
         heroTestDone: false,
         firedInterruptions: new Set(),
+        hintsRemaining: 3,
       },
     }),
   resolveSort: (chosen, expected) =>
@@ -71,4 +73,10 @@ export const createSortingSlice: StateCreator<SortingSlice> = (set) => ({
     }),
   setHeroTestDone: () =>
     set((s) => (s.sorting ? { sorting: { ...s.sorting, heroTestDone: true } } : {})),
+  consumeHint: () => {
+    const cur = get().sorting;
+    if (!cur || cur.hintsRemaining <= 0) return false;
+    set({ sorting: { ...cur, hintsRemaining: cur.hintsRemaining - 1 } });
+    return true;
+  },
 });

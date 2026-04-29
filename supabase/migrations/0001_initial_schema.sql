@@ -75,14 +75,14 @@ create policy "runs: own delete" on public.runs
 ------------------------------------------------------------
 -- 3. Aggregate view dla "Helena stats" na finale
 ------------------------------------------------------------
-create or replace view public.helena_stats as
+create or replace view public.helena_stats with (security_invoker = true) as
 select
   count(*) filter (where helena_passed) as passed,
   count(*) filter (where not helena_passed) as failed,
   count(*) as total
 from public.runs;
 
--- View dziedziczy RLS z runs (public select).
+-- security_invoker = true: view runs with caller's privileges, respecting RLS on runs.
 
 ------------------------------------------------------------
 -- 4. Indeks dla "auth.users.email" — Supabase już ma, brak akcji.

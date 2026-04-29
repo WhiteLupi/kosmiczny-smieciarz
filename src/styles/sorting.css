@@ -32,7 +32,8 @@
   padding: 14px;
   min-height: 0;
 }
-.sideCol { display: flex; flex-direction: column; gap: 10px; }
+.sideCol { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; padding-right: 4px; }
+.midgrid > .sideCol { max-height: 100%; }
 
 .workstation { position: relative; overflow: hidden; }
 .belt {
@@ -235,17 +236,18 @@
 .photo {
   position: absolute;
   right: 14px;
-  top: 46px;
-  width: 58px;
-  height: 70px;
+  top: 8px;
+  width: 38px;
+  height: 46px;
   background: #6a7a5a;
   border: 2px solid #3a3a2a;
   box-shadow: 2px 2px 0 rgba(0, 0, 0, .3);
   background-image:
-    radial-gradient(circle at 50% 36%, #d2b790 0 14px, transparent 14px),
-    radial-gradient(ellipse at 50% 88%, #8a6a4a 0 32px, transparent 32px),
+    radial-gradient(circle at 50% 36%, #d2b790 0 9px, transparent 9px),
+    radial-gradient(ellipse at 50% 88%, #8a6a4a 0 22px, transparent 22px),
     linear-gradient(180deg, #4a5a7a 0 40%, #2a3a5a 40% 100%);
 }
+.paper .hdr { padding-right: 50px; }
 
 .puzzle-scene {
   position: absolute;
@@ -384,11 +386,11 @@
 }
 .planet-tabs .tab.active { color: var(--p-accent); background: #2e3a12; }
 
-.tweaks-toggle { position: absolute; right: 16px; top: 16px; z-index: 601; }
+.tweaks-toggle { position: absolute; right: 16px; bottom: 10px; z-index: 601; }
 .tweaks-panel {
   position: absolute;
   right: 16px;
-  top: 64px;
+  bottom: 56px;
   width: 300px;
   z-index: 600;
   padding: 12px;

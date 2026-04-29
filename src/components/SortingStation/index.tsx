@@ -160,20 +160,16 @@ export function SortingStation() {
     return () => window.removeEventListener('keydown', onKey);
   }, [choose, overlay]);
 
-  const skip = useCallback(() => {
-    const cur = useStore.getState().sorting;
-    if (!cur) return;
-    const item = cur.pool[cur.idx];
-    if (!item) return;
-    const { expected } = evaluateItem(item, cur.rules, cur.unlocked);
-    choose(expected);
-  }, [choose]);
-
   const hint = useCallback(() => {
-    const cur = useStore.getState().sorting;
+    const s = useStore.getState();
+    const cur = s.sorting;
     if (!cur) return;
     const item = cur.pool[cur.idx];
     if (!item) return;
+    if (!s.consumeHint()) {
+      pushToast('Brak podpowiedzi w tej zmianie.');
+      return;
+    }
     const { expected } = evaluateItem(item, cur.rules, cur.unlocked);
     pushToast(`PODPOWIEDŹ: poprawnie = ${expected.toUpperCase()}`);
   }, []);
@@ -207,7 +203,7 @@ export function SortingStation() {
             <QuestPanel onOpenPuzzle={openF17BPuzzle} />
           </div>
         </div>
-        <DropZones onChoose={choose} onSkip={skip} onHint={hint} />
+        <DropZones onChoose={choose} onHint={hint} />
         <ToastHost />
       </div>
     </DndContext>

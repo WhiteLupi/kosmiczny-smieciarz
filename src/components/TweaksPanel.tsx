@@ -5,6 +5,10 @@ import { setSfxEnabled } from '@/audio/sfx';
 import { signOut } from '@/auth/authActions';
 import type { PlanetId, Pace, MoodId } from '@/types/game';
 
+function isDev(): boolean {
+  return typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev');
+}
+
 export function TweaksPanel() {
   const t = useStore((s) => s.tweaks);
   const setT = useStore((s) => s.setTweak);
@@ -98,7 +102,9 @@ export function TweaksPanel() {
           </div>
           <div className="tw-row" style={{ marginTop: 10 }}>
             <button className="tglBtn" onClick={() => location.reload()}>RESET GRY</button>
-            <button className="tglBtn" onClick={() => setMode('finale')}>SKIP DO FINAŁU</button>
+            {isDev() && (
+              <button className="tglBtn" onClick={() => setMode('finale')}>SKIP DO FINAŁU</button>
+            )}
           </div>
           <AuthRow />
         </div>
