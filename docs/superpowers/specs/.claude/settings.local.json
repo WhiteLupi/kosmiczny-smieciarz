@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//c/Users/brono/.claude/projects/C--Users-brono-apka-test-docs-superpowers-specs/805bb4c1-ee2c-4c6d-ae3f-00eb46ea5c4d/tool-results/**)",
+      "Read(//c/Users/brono/.claude/projects/C--Users-brono-apka-test-docs-superpowers-specs/805bb4c1-ee2c-4c6d-ae3f-00eb46ea5c4d/tool-results//**)",
+      "Read(//tmp/**)",
+      "Bash(tar xzf *)"
+    ]
+  }
+}
