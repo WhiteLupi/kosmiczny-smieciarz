@@ -1,0 +1,54 @@
+.boot-screen {
+  background: #000;
+  color: #c9c9c9;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  padding: 60px 80px;
+}
+.boot-screen .row { white-space: pre; }
+.boot-screen .cur {
+  display: inline-block;
+  width: 10px;
+  background: #c9c9c9;
+  animation: blink 1s steps(1) infinite;
+}
+
+.title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  background: #000;
+}
+.title-logo {
+  font-family: 'Press Start 2P', monospace;
+  color: var(--p-accent);
+  font-size: 56px;
+  letter-spacing: 6px;
+  text-align: center;
+  text-shadow: 4px 4px 0 #552c00, 8px 8px 0 #2a1600;
+}
+.title-sub { font-family: 'VT323', monospace; font-size: 28px; color: #9ae29a; }
+.title-press {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: #e3d76a;
+  animation: blink 1.2s steps(1) infinite;
+}
+.title-cr {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: #7a7a7a;
+  position: absolute;
+  bottom: 30px;
+}
+.title-stars { position: absolute; inset: 0; pointer-events: none; }
+.title-stars i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #fff;
+  opacity: .8;
+  animation: twinkle 3s infinite;
+}
