@@ -2,6 +2,9 @@ import { useStore } from '@/state/store';
 import { BootScreen } from './BootScreen';
 import { TitleScreen } from './TitleScreen';
 import { SortingStation } from './SortingStation';
+import { DayEndScreen } from './DayEndScreen';
+import { TransitScreen } from './TransitScreen';
+import { FinaleScreen } from './FinaleScreen';
 
 export function ScreenRouter() {
   const mode = useStore((s) => s.mode);
@@ -13,22 +16,10 @@ export function ScreenRouter() {
     case 'sorting':
       return <SortingStation />;
     case 'transit':
-      return (
-        <div className="screen" style={{ padding: 40 }}>
-          TRANSIT — Phase 13
-        </div>
-      );
+      return <TransitScreen />;
     case 'dayEnd':
-      return (
-        <div className="screen" style={{ padding: 40 }}>
-          DAY END — Phase 13
-        </div>
-      );
+      return <DayEndScreen />;
     case 'finale':
-      return (
-        <div className="screen" style={{ padding: 40 }}>
-          FINALE — Phase 13
-        </div>
-      );
+      return <FinaleScreen />;
   }
 }
