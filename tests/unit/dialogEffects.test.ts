@@ -51,7 +51,11 @@ describe('dialog effects integration', () => {
     expect(s.inventory['F-17/B']).toBe(5);
     expect(s.flags.f17bSolved).toBe(true);
     expect(s.flags.helenaPassed).toBe(true);
-    expect(s.mode).toBe('dayEnd');
+    // Stays in 'sorting' so player can finish the shift after the side puzzle.
+    expect(s.mode).toBe('sorting');
+    expect(s.overlay).toBe('none');
+    expect(s.dialog).toBeNull();
+    expect(s.activePuzzleId).toBeNull();
   });
 
   it('arbiter_offer_quest enters wallet puzzle', () => {

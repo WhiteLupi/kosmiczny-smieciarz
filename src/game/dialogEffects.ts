@@ -1,5 +1,6 @@
 import type { GameStore } from '@/state/store';
 import type { DialogEffectId } from '@/content/dialogs';
+import { clearSnapshot } from '@/state/persistence';
 
 export function applyDialogEffect(s: GameStore, id: DialogEffectId): void {
   switch (id) {
@@ -57,7 +58,7 @@ export function applyDialogEffect(s: GameStore, id: DialogEffectId): void {
         s.exitPuzzle();
         s.setOverlay('none');
         s.closeDialog();
-        s.setMode('dayEnd');
+        // Stay in 'sorting' — player should be able to finish the shift after the side puzzle.
       }
       break;
     case 'arbiter_offer_quest':
@@ -71,6 +72,8 @@ export function applyDialogEffect(s: GameStore, id: DialogEffectId): void {
       s.closeDialog();
       s.setOverlay('none');
       s.setMode('finale');
+      // Drop the snapshot now: refresh on finale should start a fresh game.
+      clearSnapshot();
       break;
   }
 }

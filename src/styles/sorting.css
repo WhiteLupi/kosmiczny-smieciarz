@@ -515,8 +515,11 @@
 }
 .auth-modal {
   width: 480px;
+  max-width: calc(100% - 32px);
   padding: 0;
   font-family: 'VT323', monospace;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .auth-header {
   display: flex;

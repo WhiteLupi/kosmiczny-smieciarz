@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/state/store';
 import { PixelPortrait } from './PixelPortrait';
 import { isCloudEnabled } from '@/lib/supabase';
+import { clearSnapshot, resetGame } from '@/state/persistence';
+import { applyPalette } from '@/state/applyPalette';
 import {
   submitRun,
   getTopRuns,
@@ -29,9 +31,9 @@ export function FinaleScreen() {
     return () => window.clearTimeout(t);
   }, []);
 
-  // Submit run + fetch leaderboard once
+  // Submit run + fetch leaderboard once, then clear local snapshot so refresh = fresh game.
   useEffect(() => {
-    if (submitted || !isCloudEnabled()) return;
+    if (submitted) return;
     setSubmitted(true);
 
     const correct = sorting?.correct ?? 0;
@@ -41,23 +43,25 @@ export function FinaleScreen() {
       : 0;
     const endingChoice: 'collect' | 'refuse' = flags.finaleChose ? 'collect' : 'refuse';
     const arbiterClues = puzzleProgress.arbiter_wallet?.collectedClues.size ?? 0;
-    const displayName = user?.email ? user.email.split('@')[0] ?? anonNick : anonNick;
 
     void (async () => {
-      await submitRun({
-        userId: user?.id ?? null,
-        displayName: displayName.slice(0, 40),
-        correct,
-        errors,
-        timeSeconds,
-        endingChoice,
-        helenaPassed: !!flags.helenaPassed,
-        f17bSolved: !!flags.f17bSolved,
-        arbiterClues,
-      });
-      const [top, stats] = await Promise.all([getTopRuns(10), getHelenaStats()]);
-      setTopRuns(top);
-      setHelenaStats(stats);
+      if (isCloudEnabled() && gameStartedAt && timeSeconds > 0) {
+        await submitRun({
+          userId: user?.id ?? null,
+          displayName: anonNick.slice(0, 40),
+          correct,
+          errors,
+          timeSeconds,
+          endingChoice,
+          helenaPassed: !!flags.helenaPassed,
+          f17bSolved: !!flags.f17bSolved,
+          arbiterClues,
+        });
+        const [top, stats] = await Promise.all([getTopRuns(10), getHelenaStats()]);
+        setTopRuns(top);
+        setHelenaStats(stats);
+      }
+      clearSnapshot();
     })();
   }, [submitted, sorting, flags, user, gameStartedAt, anonNick, puzzleProgress]);
 
@@ -107,6 +111,16 @@ export function FinaleScreen() {
           <b style={{ color: '#8a2a2a' }}>Numerek pan ma?</b>
         </div>
       </div>
+
+      <button
+        className="btn primary finale-replay"
+        onClick={() => {
+          resetGame();
+          applyPalette('p1');
+        }}
+      >
+        ▸ ZAGRAJ JESZCZE RAZ ◂
+      </button>
     </div>
   );
 }

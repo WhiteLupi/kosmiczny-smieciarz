@@ -177,6 +177,26 @@
   margin-top: 10px;
   padding: 12px 16px;
   background: #13201a;
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-accent) #0c1a0c;
+}
+.finale-leaderboard::-webkit-scrollbar { width: 10px; }
+.finale-leaderboard::-webkit-scrollbar-track {
+  background: #0c1a0c;
+  border-left: 2px solid var(--p-frame-dk);
+}
+.finale-leaderboard::-webkit-scrollbar-thumb {
+  background: var(--p-accent);
+  border: 2px solid #0c1a0c;
+}
+.finale-leaderboard::-webkit-scrollbar-thumb:hover { background: var(--p-ink); }
+.finale-leaderboard::-webkit-scrollbar-corner { background: #0c1a0c; }
+
+.finale-replay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 .finale-lb-table {
   width: 100%;

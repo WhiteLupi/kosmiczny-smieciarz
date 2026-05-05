@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useStore } from '@/state/store';
 import { applyPalette } from '@/state/applyPalette';
+import { resetGame } from '@/state/persistence';
 import { setSfxEnabled } from '@/audio/sfx';
 import type { PlanetId, Pace, MoodId } from '@/types/game';
 
@@ -100,7 +101,15 @@ export function TweaksPanel() {
             />
           </div>
           <div className="tw-row" style={{ marginTop: 10 }}>
-            <button className="tglBtn" onClick={() => location.reload()}>RESET GRY</button>
+            <button
+              className="tglBtn"
+              onClick={() => {
+                resetGame();
+                applyPalette('p1');
+              }}
+            >
+              RESET GRY
+            </button>
             {isDev() && (
               <button className="tglBtn" onClick={() => setMode('finale')}>SKIP DO FINAŁU</button>
             )}

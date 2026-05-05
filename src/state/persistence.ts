@@ -176,11 +176,34 @@ export function startPersistence(): void {
   const snap = loadSnapshot();
   if (snap) rehydrate(snap);
   useStore.subscribe((s) => {
-    // Always save locally
+    // Don't persist the finale screen — refresh on finale should start a fresh game,
+    // and resetGame() clears the snapshot explicitly. Saving finale state would resurrect
+    // it on refresh and re-submit the run (duplicate leaderboard entries).
+    if (s.mode === 'finale') return;
     debouncedSave(s);
-    // If logged in, also push to cloud (debounced separately, dynamic import to avoid circular dep)
     if (s.user) {
       void import('./cloudSync').then((m) => m.maybeScheduleCloudPush());
     }
+  });
+}
+
+/**
+ * Reset run-related game state to initial. Keeps tweaks, nick, auth.
+ * Clears the local snapshot so a refresh starts fresh too.
+ */
+export function resetGame(): void {
+  clearSnapshot();
+  useStore.setState({
+    mode: 'title',
+    overlay: 'none',
+    planet: 'p1',
+    credits: 0,
+    inventory: {},
+    flags: {},
+    sorting: null,
+    dialog: null,
+    activePuzzleId: null,
+    puzzleProgress: {},
+    gameStartedAt: null,
   });
 }

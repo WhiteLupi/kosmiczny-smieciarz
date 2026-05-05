@@ -10,6 +10,9 @@ import { initAuth } from './auth/authActions';
 document.documentElement.dataset.palette = 'p1';
 startPersistence();
 initAuth();
+if (new URLSearchParams(window.location.search).has('dev')) {
+  (window as unknown as { __store: typeof useStore }).__store = useStore;
+}
 // After rehydrate, sync palette CSS vars to current planet
 applyPalette(useStore.getState().planet);
 

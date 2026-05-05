@@ -32,7 +32,7 @@ export function TopBar() {
   useEffect(() => onPresenceChange(setPresenceCount), []);
   const others = Math.max(0, presenceCount - 1);
   const presence = presenceLabel(planet, others);
-  const displayName = user?.email ? (user.email.split('@')[0] ?? anonNick) : anonNick;
+  const displayName = anonNick;
 
   return (
     <div className="topbar">
